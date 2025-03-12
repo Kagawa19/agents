@@ -44,6 +44,13 @@ logs/
 docker/prometheus/data/
 docker/grafana/data/
 
+# Terraform files
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+.env
+
 # Miscellaneous
 .DS_Store
 .coverage

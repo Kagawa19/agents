@@ -1,0 +1,143 @@
+version: '3.8'
+
+services:
+  api:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: multiagent-api
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - DATABASE_URI=postgresql://postgres:postgres@db:5432/multiagent
+      - REDIS_URI=redis://redis:6379/0
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672//
+      - LANGFUSE_HOST=https://cloud.langfuse.com
+      - CORS_ORIGINS=*
+      # Add your API keys here or use .env file
+      - OPENAI_API_KEY=your-openai-key
+      - SERPER_API_KEY=your-serper-key
+      - JINA_API_KEY=your-jina-key
+      - LANGFUSE_PUBLIC_KEY=your-langfuse-public-key
+      - LANGFUSE_SECRET_KEY=your-langfuse-secret-key
+      - PINECONE_API_KEY=your-pinecone-key
+      - PINECONE_ENVIRONMENT=your-pinecone-env
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: multiagent-worker
+    command: celery -A app.worker.celery_app worker --loglevel=info
+    volumes:
+      - .:/app
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URI=postgresql://postgres:postgres@db:5432/multiagent
+      - REDIS_URI=redis://redis:6379/0
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672//
+      - LANGFUSE_HOST=https://cloud.langfuse.com
+      # Add your API keys here (same as api service)
+      - OPENAI_API_KEY=your-openai-key
+      - SERPER_API_KEY=your-serper-key
+      - JINA_API_KEY=your-jina-key
+      - LANGFUSE_PUBLIC_KEY=your-langfuse-public-key
+      - LANGFUSE_SECRET_KEY=your-langfuse-secret-key
+      - PINECONE_API_KEY=your-pinecone-key
+      - PINECONE_ENVIRONMENT=your-pinecone-env
+    depends_on:
+      - api
+      - redis
+      - rabbitmq
+
+  flower:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: multiagent-flower
+    command: celery -A app.worker.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      - ENVIRONMENT=development
+      - REDIS_URI=redis://redis:6379/0
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672//
+    depends_on:
+      - worker
+      - redis
+      - rabbitmq
+
+  db:
+    image: postgres:14-alpine
+    container_name: multiagent-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=multiagent
+
+  redis:
+    image: redis:alpine
+    container_name: multiagent-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: multiagent-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+
+  prometheus:
+    image: prom/prometheus
+    container_name: multiagent-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+
+  grafana:
+    image: grafana/grafana
+    container_name: multiagent-grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  prometheus_data:
+  grafana_data:
