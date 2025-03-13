@@ -11,22 +11,8 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
-    environment:
-      - ENVIRONMENT=development
-      - DEBUG=true
-      - DATABASE_URI=postgresql://postgres:postgres@db:5432/multiagent
-      - REDIS_URI=redis://redis:6379/0
-      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672//
-      - LANGFUSE_HOST=https://cloud.langfuse.com
-      - CORS_ORIGINS=*
-      # Add your API keys here or use .env file
-      - OPENAI_API_KEY=your-openai-key
-      - SERPER_API_KEY=your-serper-key
-      - JINA_API_KEY=your-jina-key
-      - LANGFUSE_PUBLIC_KEY=your-langfuse-public-key
-      - LANGFUSE_SECRET_KEY=your-langfuse-secret-key
-      - PINECONE_API_KEY=your-pinecone-key
-      - PINECONE_ENVIRONMENT=your-pinecone-env
+    env_file:
+      - .env
     depends_on:
       - db
       - redis
@@ -35,25 +21,13 @@ services:
   worker:
     build:
       context: .
-      dockerfile: docker/Dockerfile.worker
+      dockerfile: Dockerfile.worker
     container_name: multiagent-worker
     command: celery -A app.worker.celery_app worker --loglevel=info
     volumes:
       - .:/app
-    environment:
-      - ENVIRONMENT=development
-      - DATABASE_URI=postgresql://postgres:postgres@db:5432/multiagent
-      - REDIS_URI=redis://redis:6379/0
-      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672//
-      - LANGFUSE_HOST=https://cloud.langfuse.com
-      # Add your API keys here (same as api service)
-      - OPENAI_API_KEY=your-openai-key
-      - SERPER_API_KEY=your-serper-key
-      - JINA_API_KEY=your-jina-key
-      - LANGFUSE_PUBLIC_KEY=your-langfuse-public-key
-      - LANGFUSE_SECRET_KEY=your-langfuse-secret-key
-      - PINECONE_API_KEY=your-pinecone-key
-      - PINECONE_ENVIRONMENT=your-pinecone-env
+    env_file:
+      - .env
     depends_on:
       - api
       - redis
@@ -62,15 +36,13 @@ services:
   flower:
     build:
       context: .
-      dockerfile: docker/Dockerfile.worker
+      dockerfile: Dockerfile.worker
     container_name: multiagent-flower
     command: celery -A app.worker.celery_app flower --port=5555
     ports:
       - "5555:5555"
-    environment:
-      - ENVIRONMENT=development
-      - REDIS_URI=redis://redis:6379/0
-      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672//
+    env_file:
+      - .env
     depends_on:
       - worker
       - redis
@@ -112,9 +84,9 @@ services:
     image: prom/prometheus
     container_name: multiagent-prometheus
     ports:
-      - "9090:9090"
+      - "${PROMETHEUS_PORT:-9090}:9090"
     volumes:
-      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus:/etc/prometheus
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -126,7 +98,7 @@ services:
     image: grafana/grafana
     container_name: multiagent-grafana
     ports:
-      - "3001:3000"
+      - "${GRAFANA_PORT:-3001}:3000"
     volumes:
       - grafana_data:/var/lib/grafana
     environment:
