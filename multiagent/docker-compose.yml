@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   api:
     build: 
@@ -7,8 +6,15 @@ services:
       dockerfile: Dockerfile
     container_name: multiagent-api
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  app:
+    build: .
     ports:
       - "8000:8000"
+      - "5678:5678"  
+    command: >
+      python -m debugpy --wait-for-client --listen 0.0.0.0:5678 
+      -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - .:/app
     env_file:
@@ -37,12 +43,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.worker
-    container_name: multiagent-flower
     command: celery -A app.worker.celery_app flower --port=5555
     ports:
       - "5555:5555"
-    env_file:
-      - .env
     depends_on:
       - worker
       - redis

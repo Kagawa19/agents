@@ -1,5 +1,6 @@
 # app/api/endpoints/query.py
 from typing import Any, Dict
+import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Path, status
 from fastapi.websockets import WebSocket
@@ -13,6 +14,8 @@ from app.schemas.query import QueryRequest, QueryResponse, QueryStatus
 from app.worker.queue import TaskQueue
 
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(tags=["query"])
 
 @router.post("/query", response_model=QueryResponse, status_code=status.HTTP_202_ACCEPTED)
@@ -24,17 +27,12 @@ async def submit_query(
     """
     Submit a query for processing.
     The query will be processed asynchronously.
-    
-    Args:
-        request: Query request
-        workflow_manager: Workflow manager
-        db: Database session
-        
-    Returns:
-        Query status and ID
     """
+    logger.info(f"Received query request for workflow_id: {request.workflow_id}")
+    
     # Check if workflow exists
     if request.workflow_id not in workflow_manager.workflows:
+        logger.error(f"Workflow {request.workflow_id} not found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Workflow {request.workflow_id} not found"
@@ -47,9 +45,10 @@ async def submit_query(
         workflow_id=request.workflow_id,
         input_data={
             "query": request.query,
-            "user_id": "anonymous_user"  # No authentication, use default user
+            "user_id": "anonymous_user"
         }
     )
+    logger.info(f"Task submitted successfully. Task ID: {task_id}")
     
     return {
         "task_id": task_id,
@@ -65,40 +64,42 @@ async def get_query_result(
 ) -> Dict[str, Any]:
     """
     Get the result of a query.
-    
-    Args:
-        task_id: Task ID
-        db: Database session
-        
-    Returns:
-        Query result
     """
+    logger.info(f"Checking result for task_id: {task_id}")
+    
     # Check task status
     task_queue = TaskQueue()
     task_status = task_queue.get_task_status(task_id)
+    logger.debug(f"Task status for {task_id}: {task_status}")
     
-    if task_status == "PENDING" or task_status == "STARTED":
+    if task_status in ["PENDING", "STARTED"]:
+        logger.info(f"Task {task_id} still processing")
         return {
             "task_id": task_id,
             "status": "processing",
             "message": "Query still processing"
         }
     elif task_status == "FAILURE":
+        logger.error(f"Task {task_id} failed")
         return {
             "task_id": task_id,
             "status": "failed",
             "message": "Query processing failed"
         }
     elif task_status == "SUCCESS":
+        logger.info(f"Task {task_id} completed successfully")
         # Get result from task
         result = task_queue.get_task_result(task_id)
         
         if not result:
+            logger.debug(f"No result in task queue for {task_id}, checking database")
             # Try to get from database
             db_result = crud_result.get_by_task_id(db, task_id=task_id)
             if db_result:
                 result = db_result.result
+                logger.debug(f"Found result in database for task {task_id}")
             else:
+                logger.warning(f"No result found for completed task {task_id}")
                 return {
                     "task_id": task_id,
                     "status": "completed",
@@ -113,6 +114,7 @@ async def get_query_result(
             "result": result
         }
     else:
+        logger.error(f"Unknown task status for {task_id}: {task_status}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Unknown task status: {task_status}"
@@ -124,13 +126,8 @@ async def get_query_status(
 ) -> Dict[str, Any]:
     """
     Get the status of a query.
-    
-    Args:
-        task_id: Task ID
-        
-    Returns:
-        Query status
     """
+    logger.debug(f"Checking status for task_id: {task_id}")
     task_queue = TaskQueue()
     task_status = task_queue.get_task_status(task_id)
     
@@ -143,6 +140,7 @@ async def get_query_status(
     }
     
     status = status_mapping.get(task_status, "unknown")
+    logger.info(f"Task {task_id} status: {status}")
     
     return {
         "task_id": task_id,
@@ -153,8 +151,6 @@ async def get_query_status(
 async def websocket_query_updates(websocket: WebSocket) -> None:
     """
     WebSocket endpoint for real-time query updates.
-    
-    Args:
-        websocket: WebSocket connection
     """
+    logger.info("New WebSocket connection established")
     await websocket_endpoint(websocket)
