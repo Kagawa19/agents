@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environment
+.env
+.venv
+venv/
+ENV/
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite3
+
+# Docker
+docker/prometheus/data/
+docker/grafana/data/
+
+# Terraform files
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+.env
+
+# Miscellaneous
+.DS_Store
+.coverage
+htmlcov/
+.pytest_cache/
