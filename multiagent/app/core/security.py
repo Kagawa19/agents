@@ -11,8 +11,8 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 from pydantic import BaseModel
 
-from app.core.config import settings
-from app.schemas.auth import TokenData, UserBase
+from multiagent.app.core.config import settings
+from multiagent.app.schemas.auth import TokenData, UserBase
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

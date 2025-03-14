@@ -11,7 +11,7 @@ from langfuse import Langfuse
 from langfuse.decorators import observe
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.core.config import settings
+from multiagent.app.core.config import settings
 
 
 logger = logging.getLogger(__name__)
@@ -41,7 +41,11 @@ def setup_tracer() -> "LangfuseTracer":
         Configured LangfuseTracer instance
     """
     global _tracer
-    _tracer = LangfuseTracer(settings)
+    _tracer = LangfuseTracer(
+        secret_key=settings.LANGFUSE_SECRET_KEY,
+        public_key=settings.LANGFUSE_PUBLIC_KEY,
+        host=settings.LANGFUSE_HOST
+    )
     return _tracer
 
 
@@ -51,24 +55,92 @@ class LangfuseTracer:
     Provides functions for creating traces, spans, and logging events.
     """
     
-    def __init__(self, settings):
+    def __init__(self, secret_key: str, public_key: str, host: str):
         """
         Initialize the Langfuse tracer.
         
         Args:
-            settings: Application settings containing Langfuse keys
+            secret_key: Langfuse secret key
+            public_key: Langfuse public key
+            host: Langfuse API host
         """
         try:
             self.langfuse = Langfuse(
-                public_key=settings.LANGFUSE_PUBLIC_KEY,
-                secret_key=settings.LANGFUSE_SECRET_KEY,
-                host=settings.LANGFUSE_HOST
+                public_key=public_key,
+                secret_key=secret_key,
+                host=host
             )
             self.enabled = True
             logger.info("Langfuse tracer initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize Langfuse tracer: {e}")
             self.enabled = False
+    
+    def create_trace(self, name: str, **kwargs) -> Dict[str, Any]:
+        """
+        Create a new trace for tracking a sequence of operations.
+        
+        Args:
+            name: Name of the trace
+            kwargs: Additional trace parameters
+            
+        Returns:
+            Trace information
+        """
+        if not self.enabled:
+            return {"id": f"mock-trace-{name}", "name": name}
+        
+        try:
+            trace = self.langfuse.trace(name=name, **kwargs)
+            return {"id": trace.id, "name": name}
+        except Exception as e:
+            logger.error(f"Failed to create trace: {e}")
+            return {"id": f"error-trace-{name}", "name": name}
+    
+    def trace(self, name: str):
+        """
+        Context manager for creating a trace.
+        
+        Args:
+            name: Name of the trace
+            
+        Returns:
+            Trace context manager
+        """
+        if not self.enabled:
+            return self
+        
+        try:
+            return self.langfuse.trace(name=name)
+        except Exception as e:
+            logger.error(f"Failed to create trace context: {e}")
+            return self
+    
+    def span(self, name: str = None, **kwargs):
+        """
+        Context manager for creating a span within a trace.
+        
+        Args:
+            name: Name of the span
+            kwargs: Additional span parameters
+            
+        Returns:
+            Span context manager
+        """
+        if not self.enabled:
+            return self
+        
+        try:
+            return self.langfuse.span(name=name, **kwargs)
+        except Exception as e:
+            logger.error(f"Failed to create span context: {e}")
+            return self
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, *args):
+        pass
     
     @observe()
     def trace_requests(self, request: Request, call_next) -> Response:

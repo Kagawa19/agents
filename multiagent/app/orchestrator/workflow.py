@@ -8,10 +8,10 @@ import time
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional
 
-from app.db.crud.results import crud_result
-from app.db.session import SessionLocal
-from app.monitoring.tracer import LangfuseTracer
-from app.orchestrator.manager import AgentManager
+from multiagent.app.db.crud.results import crud_result
+from multiagent.app.db.session import SessionLocal
+from multiagent.app.monitoring.tracer import LangfuseTracer
+from multiagent.app.orchestrator.manager import AgentManager
 
 
 logger = logging.getLogger(__name__)

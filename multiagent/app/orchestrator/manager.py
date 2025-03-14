@@ -6,9 +6,9 @@ Responsible for creating, configuring, and coordinating agents.
 import logging
 from typing import Dict, Any, Type, Optional
 
-from app.agents.base import BaseAgent
-from app.core.config import Settings
-from app.monitoring.tracer import LangfuseTracer
+from multiagent.app.agents.base import BaseAgent
+from multiagent.app.core.config import Settings
+from multiagent.app.monitoring.tracer import LangfuseTracer
 
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,10 @@ class AgentManager:
         Initialize all tools and agents.
         Creates tool instances and configures all agent types.
         """
-        with self.tracer.span("agent_manager_initialization"):
+        # Create a span without using context manager
+        span = self.tracer.span(name="agent_manager_initialization")
+        
+        try:
             # Initialize tools
             logger.info("Initializing tools")
             self._initialize_tools()
@@ -45,6 +48,13 @@ class AgentManager:
             # Initialize agents
             logger.info("Initializing agents")
             self._initialize_agents()
+            
+            # Update span with success status
+            span.update(output={"status": "success"})
+        except Exception as e:
+            # Update span with error
+            span.update(output={"status": "error", "error": str(e)})
+            raise
     
     def _initialize_tools(self) -> None:
         """
@@ -197,7 +207,14 @@ class AgentManager:
             KeyError: If the agent does not exist
         """
         agent = self.get_agent(agent_id)
-        with self.tracer.span(f"execute_agent_{agent_id}"):
+        
+        # Create a span without using context manager
+        span = self.tracer.span(
+            name=f"execute_agent_{agent_id}",
+            input=input_data
+        )
+        
+        try:
             logger.info(f"Executing agent: {agent_id}")
             start_time = __import__('time').time()
             result = agent.execute(input_data)
@@ -207,7 +224,14 @@ class AgentManager:
             # Update agent metrics
             self._update_agent_metrics(agent_id, True, execution_time)
             
+            # Update span with success result
+            span.update(output=result)
+            
             return result
+        except Exception as e:
+            # Update span with error
+            span.update(output={"status": "error", "error": str(e)})
+            raise
     
     def _update_agent_metrics(self, agent_id: str, success: bool, execution_time: float) -> None:
         """

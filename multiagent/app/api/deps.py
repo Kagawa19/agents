@@ -3,59 +3,10 @@ from typing import Generator
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from app.db.session import SessionLocal
-
-# Create minimal implementations for missing imports
-
-class LangfuseTracer:
-    """Simplified LangfuseTracer implementation."""
-    
-    def __init__(self):
-        self.traces = {}
-    
-    def create_trace(self, name, **kwargs):
-        return {"id": f"trace-{name}", "name": name}
-    
-    def span(self, **kwargs):
-        return self
-    
-    def __enter__(self):
-        return self
-    
-    def __exit__(self, *args):
-        pass
-
-def get_tracer():
-    """Get LangfuseTracer instance."""
-    return LangfuseTracer()
-
-class AgentManager:
-    """Simplified AgentManager implementation."""
-    
-    def __init__(self, settings, tracer):
-        self.settings = settings
-        self.tracer = tracer
-        self.agents = {}
-    
-    def initialize(self):
-        """Initialize the agent manager."""
-        pass
-    
-    def get_agent(self, agent_id):
-        """Get an agent by ID."""
-        return self.agents.get(agent_id)
-    
-    def create_agent(self, agent_config):
-        """Create a new agent."""
-        pass
-
-class WorkflowManager:
-    """Simplified WorkflowManager implementation."""
-    
-    def __init__(self, agent_manager, tracer):
-        self.agent_manager = agent_manager
-        self.tracer = tracer
-        self.workflows = {}
+from multiagent.app.db.session import SessionLocal
+from multiagent.app.monitoring.tracer import LangfuseTracer
+from multiagent.app.orchestrator.manager import AgentManager
+from multiagent.app.orchestrator.workflow import WorkflowManager
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -71,6 +22,22 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
+
+
+def get_tracer() -> LangfuseTracer:
+    """
+    Get LangfuseTracer instance.
+    
+    Returns:
+        LangfuseTracer instance
+    """
+    from app.core.config import settings
+    # Create a new LangfuseTracer with the updated constructor parameters
+    return LangfuseTracer(
+        secret_key=settings.LANGFUSE_SECRET_KEY,
+        public_key=settings.LANGFUSE_PUBLIC_KEY,
+        host=settings.LANGFUSE_HOST
+    )
 
 
 def get_agent_manager(tracer: LangfuseTracer = Depends(get_tracer)) -> AgentManager:

@@ -11,8 +11,8 @@ import httpx
 import numpy as np
 from docarray import Document, DocumentArray
 
-from app.monitoring.tracer import LangfuseTracer
-from app.monitoring.metrics import track_vector_db_operation
+from multiagent.app.monitoring.tracer import LangfuseTracer
+from multiagent.app.monitoring.metrics import track_vector_db_operation
 
 
 logger = logging.getLogger(__name__)

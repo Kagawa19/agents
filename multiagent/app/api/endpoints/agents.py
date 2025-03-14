@@ -2,9 +2,9 @@ from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException, Path, status
 
-from app.api.deps import get_agent_manager
-from app.orchestrator.manager import AgentManager
-from app.schemas.agent import AgentList, AgentRequest, AgentResponse
+from multiagent.app.api.deps import get_agent_manager
+from multiagent.app.orchestrator.manager import AgentManager
+from multiagent.app.schemas.agent import AgentList, AgentRequest, AgentResponse
 
 
 router = APIRouter(tags=["agents"])

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 
-from app.schemas.health import HealthCheck
+from multiagent.app.schemas.health import HealthCheck
 
 
 router = APIRouter(tags=["health"])

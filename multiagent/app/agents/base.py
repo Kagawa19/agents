@@ -10,8 +10,8 @@ from typing import Any, Dict, Optional
 
 from langchain.agents import Agent as LangChainAgent
 
-from app.monitoring.tracer import LangfuseTracer
-from app.monitoring.metrics import track_agent_execution
+from multiagent.app.monitoring.tracer import LangfuseTracer
+from multiagent.app.monitoring.metrics import track_agent_execution
 
 
 logger = logging.getLogger(__name__)

@@ -10,10 +10,10 @@ from typing import Any, Dict, Optional
 from celery import states
 from celery.exceptions import MaxRetriesExceededError, Retry
 
-from app.api.websocket import connection_manager
-from app.db.crud.results import crud_result
-from app.db.session import SessionLocal
-from app.worker.celery_app import celery_app
+from multiagent.app.api.websocket import connection_manager
+from multiagent.app.db.crud.results import crud_result
+from multiagent.app.db.session import SessionLocal
+from multiagent.app.worker.celery_app import celery_app
 
 
 logger = logging.getLogger(__name__)

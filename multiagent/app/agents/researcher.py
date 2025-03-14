@@ -7,10 +7,10 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-from app.agents.base import BaseAgent
-from app.monitoring.tracer import LangfuseTracer
-from app.tools.serper import SerperTool
-from app.tools.openai import OpenAITool
+from multiagent.app.agents.base import BaseAgent
+from multiagent.app.monitoring.tracer import LangfuseTracer
+from multiagent.app.tools.serper import SerperTool
+from multiagent.app.tools.openai import OpenAITool
 
 
 logger = logging.getLogger(__name__)

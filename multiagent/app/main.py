@@ -6,8 +6,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.endpoints import agents, auth, health, query
-from app.api.error_handlers import add_exception_handlers
+from multiagent.app.api.endpoints import agents, auth, health, query
+from multiagent.app.api.error_handlers import add_exception_handlers
 from app.core.config import settings
 from app.core.events import create_start_app_handler, create_stop_app_handler
 from app.monitoring.logging import setup_logging

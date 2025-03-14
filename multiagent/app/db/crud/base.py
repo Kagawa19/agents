@@ -10,7 +10,7 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.db.session import Base
+from multiagent.app.db.session import Base
 
 
 logger = logging.getLogger(__name__)

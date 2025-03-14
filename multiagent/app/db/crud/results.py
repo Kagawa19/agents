@@ -10,8 +10,8 @@ from typing import Any, Dict, List, Optional, Union
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 
-from app.db.crud.base import CRUDBase
-from app.db.models import Result, AgentExecution
+from multiagent.app.db.crud.base import CRUDBase
+from multiagent.app.db.models import Result, AgentExecution
 
 
 logger = logging.getLogger(__name__)

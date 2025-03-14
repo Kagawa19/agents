@@ -8,7 +8,7 @@ import os
 from celery import Celery
 from celery.signals import task_postrun, task_prerun, worker_init, worker_ready
 
-from app.core.config import settings
+from multiagent.app.core.config import settings
 
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ celery_app.conf.update(
 )
 
 # Import tasks module to register tasks
-import app.worker.tasks
+import multiagent.app.worker.tasks
 
 
 @worker_init.connect

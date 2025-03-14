@@ -5,8 +5,8 @@ Authentication endpoints for user registration, login, and token management.
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.schemas.auth import Token, UserBase
-from app.core.security import (
+from multiagent.app.schemas.auth import Token, UserBase
+from multiagent.app.core.security import (
     create_access_token,
     authenticate_user,
     get_current_active_user

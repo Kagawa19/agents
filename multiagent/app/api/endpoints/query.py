@@ -5,13 +5,13 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Path, status
 from fastapi.websockets import WebSocket
 
-from app.api.deps import get_workflow_manager
-from app.api.websocket import websocket_endpoint
-from app.db.crud.results import crud_result
-from app.db.session import get_db
-from app.orchestrator.workflow import WorkflowManager
-from app.schemas.query import QueryRequest, QueryResponse, QueryStatus
-from app.worker.queue import TaskQueue
+from multiagent.app.api.deps import get_workflow_manager
+from multiagent.app.api.websocket import websocket_endpoint
+from multiagent.app.db.crud.results import crud_result
+from multiagent.app.db.session import get_db
+from multiagent.app.orchestrator.workflow import WorkflowManager
+from multiagent.app.schemas.query import QueryRequest, QueryResponse, QueryStatus
+from multiagent.app.worker.queue import TaskQueue
 
 
 logger = logging.getLogger(__name__)

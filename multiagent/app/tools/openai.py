@@ -9,8 +9,8 @@ from typing import Dict, Any, List, Optional
 
 import openai
 
-from app.monitoring.tracer import LangfuseTracer
-from app.monitoring.metrics import track_llm_call
+from multiagent.app.monitoring.tracer import LangfuseTracer
+from multiagent.app.monitoring.metrics import track_llm_call
 
 
 logger = logging.getLogger(__name__)

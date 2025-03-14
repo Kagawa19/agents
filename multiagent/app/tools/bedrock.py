@@ -8,8 +8,8 @@ import logging
 import time
 from typing import Dict, Any, List, Optional, Union
 
-from app.monitoring.tracer import LangfuseTracer
-from app.monitoring.metrics import track_llm_call
+from multiagent.app.monitoring.tracer import LangfuseTracer
+from multiagent.app.monitoring.metrics import track_llm_call
 
 
 logger = logging.getLogger(__name__)

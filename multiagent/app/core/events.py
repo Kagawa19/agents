@@ -4,9 +4,9 @@ from typing import Callable
 
 from fastapi import FastAPI
 
-from app.db.session import engine
-from app.db.models import Base
-from app.monitoring.tracer import setup_tracer
+from multiagent.app.db.session import engine
+from multiagent.app.db.models import Base
+from multiagent.app.monitoring.tracer import setup_tracer
 
 
 logger = logging.getLogger(__name__)

@@ -5,12 +5,20 @@ from pydantic import AnyHttpUrl, Field, validator
 from pydantic_settings import BaseSettings
 
 
+
+
 class Settings(BaseSettings):
     """
     Application settings loaded from environment variables.
     Provides default values for development environments.
     """
-    
+    @validator("PROMETHEUS_ENABLED", "GRAFANA_ENABLED", "DATABASE_ECHO", pre=True)
+    def parse_bool(cls, v):
+        if isinstance(v, str):
+            return v.lower() in ('true', '1', 'yes', 'on')
+        return bool(v)
+
+    # Rest of the class remains the same...
     # API Configuration
     API_HOST: str = Field("0.0.0.0", env="API_HOST")
     API_PORT: int = Field(8000, env="API_PORT")
@@ -92,6 +100,28 @@ class Settings(BaseSettings):
     # Vector Database and Additional Services
     PINECONE_HOST: Optional[str] = Field(None, env="PINECONE_HOST")
     PINECONE_REGION: Optional[str] = Field(None, env="PINECONE_REGION")
+    
+    # Langfuse Configuration
+    LANGFUSE_SECRET_KEY: Optional[str] = Field(None, env="LANGFUSE_SECRET_KEY") 
+    LANGFUSE_PUBLIC_KEY: Optional[str] = Field(None, env="LANGFUSE_PUBLIC_KEY")
+    LANGFUSE_HOST: str = Field("https://api.langfuse.com", env="LANGFUSE_HOST")
+    
+    # Tool API Keys
+    SERPER_API_KEY: Optional[str] = Field(None, env="SERPER_API_KEY")
+    JINA_API_KEY: Optional[str] = Field(None, env="JINA_API_KEY")
+    
+    # Agent Configurations
+    RESEARCHER_TEMPERATURE: float = Field(0.7, env="RESEARCHER_TEMPERATURE")
+    RESEARCHER_MODEL: str = Field("gpt-4", env="RESEARCHER_MODEL")
+    RESEARCHER_PROMPT_TEMPLATE: str = Field("Conduct thorough research on {query} and provide comprehensive information.", env="RESEARCHER_PROMPT_TEMPLATE")
+    
+    ANALYZER_TEMPERATURE: float = Field(0.5, env="ANALYZER_TEMPERATURE")
+    ANALYZER_MODEL: str = Field("gpt-4", env="ANALYZER_MODEL")
+    ANALYZER_PROMPT_TEMPLATE: str = Field("Analyze the following information about {query} and extract key insights: {information}", env="ANALYZER_PROMPT_TEMPLATE")
+    
+    SUMMARIZER_TEMPERATURE: float = Field(0.3, env="SUMMARIZER_TEMPERATURE")
+    SUMMARIZER_MODEL: str = Field("gpt-4", env="SUMMARIZER_MODEL")
+    SUMMARIZER_PROMPT_TEMPLATE: str = Field("Create a concise summary of the following analysis about {query}: {analysis_results}", env="SUMMARIZER_PROMPT_TEMPLATE")
 
     class Config:
         env_file = ".env"

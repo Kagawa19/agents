@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from celery.result import AsyncResult
 
-from app.worker.celery_app import celery_app
+from multiagent.app.worker.celery_app import celery_app
 
 
 logger = logging.getLogger(__name__)
