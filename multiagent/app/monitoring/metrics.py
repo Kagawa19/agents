@@ -295,7 +295,7 @@ def setup_metrics(app: FastAPI) -> None:
     app.add_route("/metrics", metrics_endpoint)
     
     # Set basic system info
-    from app import __version__
+    from multiagent.app import __version__
     SYSTEM_INFO.labels(name="version", value=__version__).set(1)
     
     logger.info("Metrics setup complete")

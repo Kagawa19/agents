@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.core.config import settings
+from multiagent.app.core.config import settings
 
 
 def add_exception_handlers(app: FastAPI) -> None:
