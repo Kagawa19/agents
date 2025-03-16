@@ -57,3 +57,4 @@ htmlcov/
 .pytest_cache/
 .env
 .env
+.env

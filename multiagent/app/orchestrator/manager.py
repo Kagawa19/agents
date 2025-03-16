@@ -153,7 +153,10 @@ class AgentManager:
                 agent_id="analyzer",
                 tracer=self.tracer,
                 jina_tool=self.tools["jina"],
-                openai_tool=self.tools["openai"]
+                openai_tool=self.tools["openai"],
+                bedrock_tool=self.tools.get("bedrock"),  # Add Bedrock tool
+                serper_tool=self.tools["serper"],         # Add SerperTool for web search
+                scraper_tool=self.tools.get("scraper")    # Add WebScraper tool if available
             )
             analyzer.initialize(self.settings.get_agent_config("analyzer"))
             self.agents["analyzer"] = analyzer

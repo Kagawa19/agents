@@ -330,7 +330,9 @@ class ResearchWorkflow(Workflow):
             agent_id="analyzer",
             input_mapper=lambda state: {
                 "query": state["input"]["query"],
-                "information": state["researcher"]["processed_information"]
+                "information": state["researcher"]["processed_information"],
+                "search_web": state["input"].get("enable_analyzer_search", False),  # Add optional web search flag
+                "num_results": state["input"].get("analyzer_search_results", 3)     # Add number of results to fetch
             },
             description="Analyze and extract key insights from research"
         )
@@ -383,7 +385,6 @@ class DirectResearchWorkflow(Workflow):
             },
             description="Create a concise summary of the findings"
         )
-
 
 class WorkflowManager:
     """

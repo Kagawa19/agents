@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Union
 from celery.result import AsyncResult
 
 from multiagent.app.worker.celery_app import celery_app
-
+from multiagent.app.worker.tasks import update_progress
 
 logger = logging.getLogger(__name__)
 
@@ -19,29 +19,8 @@ class TaskQueue:
     Interface for interacting with the Celery task queue.
     Provides methods for submitting tasks and checking their status.
     """
-    
-    def submit_task(
-        self,
-        task_name: str,
-        *args: Any,
-        **kwargs: Any
-    ) -> str:
-        """
-        Submit a task to the queue.
-        
-        Args:
-            task_name: Name of the task to execute
-            *args: Positional arguments for the task
-            **kwargs: Keyword arguments for the task
-        
-        Returns:
-            Task ID
-        """
-        # Submit the task
-        task = celery_app.send_task(task_name, args=args, kwargs=kwargs)
-        logger.info(f"Submitted task {task_name} (ID: {task.id})")
-        return task.id
-    
+
+
     def get_task_status(self, task_id: str) -> str:
         """
         Get the status of a task.
@@ -53,8 +32,36 @@ class TaskQueue:
             Task status (PENDING, STARTED, SUCCESS, FAILURE, REVOKED)
         """
         result = AsyncResult(task_id, app=celery_app)
-        return result.state
-    
+        status = result.state
+        
+        # Map Celery status to application status
+        status_mapping = {
+            "PENDING": "pending",
+            "STARTED": "processing",
+            "SUCCESS": "completed",
+            "FAILURE": "failed",
+            "REVOKED": "cancelled"
+        }
+        
+        app_status = status_mapping.get(status, "unknown")
+        
+        # Determine progress based on status
+        progress = 0
+        if status == "PENDING":
+            progress = 0
+        elif status == "STARTED":
+            progress = 50  # Approximate middle progress
+        elif status == "SUCCESS":
+            progress = 100
+        
+        # Update progress in the system
+        self.update_task_progress(
+            task_id=task_id,
+            status=app_status,
+            progress=progress
+        )
+        
+        return status
     def get_task_result(self, task_id: str) -> Optional[Any]:
         """
         Get the result of a task.
@@ -69,12 +76,112 @@ class TaskQueue:
         
         if result.ready():
             try:
-                return result.get()
+                task_result = result.get()
+                
+                # Update progress to completed with result
+                if result.successful():
+                    self.update_task_progress(
+                        task_id=task_id,
+                        status="completed",
+                        progress=100,
+                        result=task_result
+                    )
+                else:
+                    self.update_task_progress(
+                        task_id=task_id,
+                        status="failed",
+                        progress=100,
+                        error="Task failed"
+                    )
+                    
+                return task_result
             except Exception as e:
                 logger.error(f"Error retrieving task result: {str(e)}")
+                
+                # Update progress with error
+                self.update_task_progress(
+                    task_id=task_id,
+                    status="failed",
+                    progress=100,
+                    error=str(e)
+                )
+                
                 return None
         
         return None
+    
+    def submit_task(
+        self,
+        task_name: str,
+        *args: Any,
+        task_id: Optional[str] = None,
+        priority: Optional[int] = None,
+        **kwargs: Any
+    ) -> str:
+        """
+        Submit a task to the queue.
+        
+        Args:
+            task_name: Name of the task to execute
+            *args: Positional arguments for the task
+            task_id: Optional custom task ID (will be generated if not provided)
+            priority: Priority level (1-10, where 1 is highest priority)
+            **kwargs: Keyword arguments for the task
+        
+        Returns:
+            Task ID
+        """
+        try:
+            # Generate a task ID if not provided
+            if task_id is None:
+                task_id = str(uuid.uuid4())
+            
+            # Determine queue based on priority
+            queue = None
+            task_options = {}
+            
+            if priority is not None:
+                if priority <= 3:
+                    queue = "high_priority"
+                elif priority <= 7:
+                    queue = "medium_priority"
+                else:
+                    queue = "low_priority"
+                
+                # Add queue to options if specified
+                if queue:
+                    task_options["queue"] = queue
+                
+                # Convert input priority (1-10, where 1 is highest) to Celery format
+                celery_priority = min(max(10 - priority, 0), 9)
+                task_options["priority"] = celery_priority
+            
+            # Submit task with custom task_id and priority options
+            task = celery_app.send_task(
+                task_name, 
+                args=args, 
+                kwargs=kwargs,
+                task_id=task_id,
+                **task_options
+            )
+            
+            logger.info(f"Submitted task {task_name} (ID: {task_id}, Priority: {priority})")
+            
+            # Update initial progress
+            self.update_task_progress(
+                task_id=task_id,
+                status="pending",
+                progress=0,
+                current_step="Task submitted to queue"
+            )
+            
+            return task_id
+            
+        except Exception as e:
+            logger.error(f"Error submitting task {task_name}: {str(e)}")
+            raise
+    
+    
     
     def cancel_task(self, task_id: str) -> bool:
         """

@@ -1,372 +1,451 @@
 """
-Jina AI Tool implementation.
-Provides functions for document processing and embedding generation using Jina AI.
+Jina AI integration.
+Provides a client for interacting with Jina AI services.
 """
 
 import logging
-import time
+import json
+import aiohttp
 from typing import Dict, Any, List, Optional, Union
-
-import httpx
 import numpy as np
-from docarray import Document, DocumentArray
-
 from multiagent.app.monitoring.tracer import LangfuseTracer
-from multiagent.app.monitoring.metrics import track_vector_db_operation
-
 
 logger = logging.getLogger(__name__)
-
 
 class JinaTool:
     """
     Tool for interacting with Jina AI services.
-    Provides functions for document processing and embedding generation.
+    Provides methods for embeddings, search, and more.
     """
     
-    def __init__(self, api_key: str, tracer: LangfuseTracer):
+    def __init__(
+        self,
+        api_key: str,
+        tracer: Optional[LangfuseTracer] = None
+    ):
         """
         Initialize the Jina tool.
         
         Args:
             api_key: Jina AI API key
-            tracer: LangfuseTracer instance for monitoring
+            tracer: Optional LangfuseTracer instance for monitoring
         """
         self.api_key = api_key
         self.tracer = tracer
+        self.base_url = "https://api.jina.ai/v1"
+        self.headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+    
+    async def get_embeddings(
+        self,
+        texts: List[str],
+        model: str = "jina-embeddings-v2-base-en"
+    ) -> List[List[float]]:
+        """
+        Get embeddings for a list of texts.
         
-        # Set up Jina client
+        Args:
+            texts: List of texts to get embeddings for
+            model: Embedding model to use
+            
+        Returns:
+            List of embeddings
+        """
+        span = None
+        if self.tracer:
+            span = self.tracer.span(
+                name="jina_get_embeddings",
+                input={"text_count": len(texts), "model": model}
+            )
+        
         try:
-            from jina import Client
-            self.client = Client(host="grpcs://api.jina.ai:443")
-            self.client.kwargs = {"headers": {"Authorization": f"Bearer {api_key}"}}
-            logger.info("Jina AI client initialized successfully")
-            self.initialized = True
+            # Check for empty inputs
+            if not texts:
+                return []
+            
+            # Prepare request
+            url = f"{self.base_url}/embeddings"
+            payload = {
+                "model": model,
+                "input": texts
+            }
+            
+            # Send request
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    url,
+                    headers=self.headers,
+                    json=payload
+                ) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        logger.error(f"Jina API error ({response.status}): {error_text}")
+                        if span:
+                            span.update(output={"error": error_text})
+                        return []
+                    
+                    # Parse response
+                    result = await response.json()
+            
+            # Extract embeddings
+            embeddings = [item["embedding"] for item in result["data"]]
+            
+            if span:
+                span.update(output={"embedding_count": len(embeddings)})
+            
+            return embeddings
+            
         except Exception as e:
-            logger.error(f"Failed to initialize Jina AI client: {e}")
-            self.initialized = False
+            logger.error(f"Error getting embeddings: {str(e)}")
+            
+            if span:
+                span.update(output={"error": str(e)})
+            
+            return []
     
-    def process_documents(self, text: Union[str, List[str], Dict[str, Any]]) -> Dict[str, Any]:
+    async def create_index(
+        self,
+        index_name: str,
+        dimension: int = 768,
+        metric: str = "cosine"
+    ) -> Dict[str, Any]:
         """
-        Process documents using Jina AI.
-        Chunks documents and extracts information.
+        Create a vector index.
         
         Args:
-            text: Text content to process (string, list of strings, or dict)
+            index_name: Name of the index
+            dimension: Dimension of embeddings
+            metric: Distance metric (cosine, euclidean, dot)
             
         Returns:
-            Processed document structure
+            Index information
         """
-        with self.tracer.span("jina_process_documents"):
-            start_time = time.time()
+        span = None
+        if self.tracer:
+            span = self.tracer.span(
+                name="jina_create_index",
+                input={"index_name": index_name, "dimension": dimension}
+            )
+        
+        try:
+            # Prepare request
+            url = f"{self.base_url}/indexes"
+            payload = {
+                "name": index_name,
+                "dimension": dimension,
+                "metric": metric
+            }
             
-            if not self.initialized:
-                return {"error": "Jina AI client not initialized"}
-            
-            try:
-                # Convert input to DocumentArray
-                docs = self._prepare_documents(text)
-                
-                # Process with Jina
-                response = self.client.post("/documents/process", docs)
-                
-                # Extract and format results
-                results = []
-                for doc in response:
-                    chunks = []
-                    for chunk in doc.chunks:
-                        chunks.append({
-                            "id": chunk.id,
-                            "text": chunk.text,
-                            "mime_type": chunk.mime_type,
-                            "tags": dict(chunk.tags) if hasattr(chunk, "tags") else {}
-                        })
+            # Send request
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    url,
+                    headers=self.headers,
+                    json=payload
+                ) as response:
+                    if response.status not in [200, 201]:
+                        error_text = await response.text()
+                        logger.error(f"Jina API error ({response.status}): {error_text}")
+                        if span:
+                            span.update(output={"error": error_text})
+                        return {"error": error_text}
                     
-                    results.append({
-                        "id": doc.id,
-                        "text": doc.text,
-                        "chunks": chunks,
-                        "tags": dict(doc.tags) if hasattr(doc, "tags") else {}
-                    })
-                
-                # Calculate execution time
-                execution_time = time.time() - start_time
-                
-                # Track metrics
-                track_vector_db_operation("process_documents", "success", execution_time)
-                
-                # Log event
-                self.tracer.log_event(
-                    event_type="jina_process_documents",
-                    event_data={
-                        "document_count": len(docs),
-                        "chunk_count": sum(len(doc.get("chunks", [])) for doc in results),
-                        "execution_time": execution_time
-                    }
-                )
-                
-                return {
-                    "documents": results,
-                    "execution_time": execution_time
-                }
-            except Exception as e:
-                logger.error(f"Error processing documents: {str(e)}")
-                
-                # Calculate execution time
-                execution_time = time.time() - start_time
-                
-                # Track metrics
-                track_vector_db_operation("process_documents", "failure", execution_time)
-                
-                # Log event
-                self.tracer.log_event(
-                    event_type="jina_error",
-                    event_data={
-                        "error": str(e),
-                        "execution_time": execution_time
-                    }
-                )
-                
-                return {
-                    "error": f"Error processing documents: {str(e)}",
-                    "execution_time": execution_time
-                }
+                    # Parse response
+                    result = await response.json()
+            
+            if span:
+                span.update(output={"status": "success"})
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error creating index: {str(e)}")
+            
+            if span:
+                span.update(output={"error": str(e)})
+            
+            return {"error": str(e)}
     
-    def generate_embeddings(self, text: Union[str, List[str], Dict[str, Any]]) -> Dict[str, Any]:
+    async def upsert_documents(
+        self,
+        index_name: str,
+        documents: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """
-        Generate embeddings for text using Jina AI.
+        Upsert documents to an index.
         
         Args:
-            text: Text to generate embeddings for (string, list of strings, or processed document)
+            index_name: Name of the index
+            documents: List of documents to upsert
             
         Returns:
-            Dictionary containing embeddings
+            Upsert response
         """
-        with self.tracer.span("jina_generate_embeddings"):
-            start_time = time.time()
+        span = None
+        if self.tracer:
+            span = self.tracer.span(
+                name="jina_upsert_documents",
+                input={"index_name": index_name, "document_count": len(documents)}
+            )
+        
+        try:
+            # Check for empty inputs
+            if not documents:
+                return {"status": "success", "count": 0}
             
-            if not self.initialized:
-                return {"error": "Jina AI client not initialized"}
+            # Prepare request
+            url = f"{self.base_url}/indexes/{index_name}/upsert"
+            payload = {
+                "documents": documents
+            }
             
-            try:
-                # Prepare documents
-                docs = self._prepare_documents(text)
-                
-                # Generate embeddings
-                response = self.client.post("/embeddings", docs)
-                
-                # Extract embeddings
-                embeddings = []
-                for doc in response:
-                    # Skip documents without embeddings
-                    if not hasattr(doc, "embedding") or doc.embedding is None:
-                        continue
+            # Send request
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    url,
+                    headers=self.headers,
+                    json=payload
+                ) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        logger.error(f"Jina API error ({response.status}): {error_text}")
+                        if span:
+                            span.update(output={"error": error_text})
+                        return {"error": error_text}
                     
-                    # Convert embedding to list and append to results
-                    embedding_list = doc.embedding.tolist() if hasattr(doc.embedding, "tolist") else list(doc.embedding)
-                    
-                    embeddings.append({
-                        "id": doc.id,
-                        "text": doc.text[:100] + "..." if len(doc.text) > 100 else doc.text,
-                        "embedding": embedding_list
-                    })
-                
-                # Calculate execution time
-                execution_time = time.time() - start_time
-                
-                # Track metrics
-                track_vector_db_operation("generate_embeddings", "success", execution_time)
-                
-                # Log event
-                self.tracer.log_event(
-                    event_type="jina_generate_embeddings",
-                    event_data={
-                        "document_count": len(docs),
-                        "embedding_count": len(embeddings),
-                        "embedding_dim": len(embeddings[0]["embedding"]) if embeddings else 0,
-                        "execution_time": execution_time
-                    }
-                )
-                
-                return {
-                    "embeddings": embeddings,
-                    "execution_time": execution_time
-                }
-            except Exception as e:
-                logger.error(f"Error generating embeddings: {str(e)}")
-                
-                # Calculate execution time
-                execution_time = time.time() - start_time
-                
-                # Track metrics
-                track_vector_db_operation("generate_embeddings", "failure", execution_time)
-                
-                # Log event
-                self.tracer.log_event(
-                    event_type="jina_error",
-                    event_data={
-                        "error": str(e),
-                        "execution_time": execution_time
-                    }
-                )
-                
-                return {
-                    "error": f"Error generating embeddings: {str(e)}",
-                    "execution_time": execution_time
-                }
+                    # Parse response
+                    result = await response.json()
+            
+            if span:
+                span.update(output={"status": "success"})
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error upserting documents: {str(e)}")
+            
+            if span:
+                span.update(output={"error": str(e)})
+            
+            return {"error": str(e)}
     
-    def search_similar(self, text: str, corpus: List[Dict[str, Any]], top_k: int = 5) -> Dict[str, Any]:
+    async def search(
+        self,
+        index_name: str,
+        query_embedding: List[float],
+        limit: int = 10,
+        filter: Optional[Dict[str, Any]] = None
+    ) -> List[Dict[str, Any]]:
         """
-        Search for similar documents given a query and corpus.
+        Search for similar documents in an index.
         
         Args:
-            text: Query text
-            corpus: List of documents with embeddings
-            top_k: Number of results to return
+            index_name: Name of the index
+            query_embedding: Query embedding
+            limit: Number of results to return
+            filter: Optional filter criteria
             
         Returns:
-            Dictionary containing search results
+            List of search results
         """
-        with self.tracer.span("jina_search_similar"):
-            start_time = time.time()
+        span = None
+        if self.tracer:
+            span = self.tracer.span(
+                name="jina_search",
+                input={"index_name": index_name, "limit": limit}
+            )
+        
+        try:
+            # Prepare request
+            url = f"{self.base_url}/indexes/{index_name}/search"
+            payload = {
+                "vector": query_embedding,
+                "limit": limit
+            }
             
-            if not self.initialized:
-                return {"error": "Jina AI client not initialized"}
+            if filter:
+                payload["filter"] = filter
             
-            try:
-                # Generate query embedding
-                query_result = self.generate_embeddings(text)
-                if "error" in query_result:
-                    return query_result
-                
-                query_embedding = query_result["embeddings"][0]["embedding"]
-                
-                # Prepare corpus
-                corpus_docs = []
-                for item in corpus:
-                    if "embedding" not in item:
-                        continue
+            # Send request
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    url,
+                    headers=self.headers,
+                    json=payload
+                ) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        logger.error(f"Jina API error ({response.status}): {error_text}")
+                        if span:
+                            span.update(output={"error": error_text})
+                        return []
                     
-                    corpus_docs.append({
-                        "id": item.get("id", ""),
-                        "text": item.get("text", ""),
-                        "embedding": item["embedding"]
-                    })
-                
-                # Perform similarity search
-                results = self._vector_search(query_embedding, corpus_docs, top_k)
-                
-                # Calculate execution time
-                execution_time = time.time() - start_time
-                
-                # Track metrics
-                track_vector_db_operation("search_similar", "success", execution_time)
-                
-                # Log event
-                self.tracer.log_event(
-                    event_type="jina_search_similar",
-                    event_data={
-                        "query": text,
-                        "corpus_size": len(corpus),
-                        "result_count": len(results),
-                        "execution_time": execution_time
-                    }
-                )
-                
-                return {
-                    "query": text,
-                    "results": results,
-                    "execution_time": execution_time
-                }
-            except Exception as e:
-                logger.error(f"Error searching similar documents: {str(e)}")
-                
-                # Calculate execution time
-                execution_time = time.time() - start_time
-                
-                # Track metrics
-                track_vector_db_operation("search_similar", "failure", execution_time)
-                
-                # Log event
-                self.tracer.log_event(
-                    event_type="jina_error",
-                    event_data={
-                        "error": str(e),
-                        "execution_time": execution_time
-                    }
-                )
-                
-                return {
-                    "error": f"Error searching similar documents: {str(e)}",
-                    "execution_time": execution_time
-                }
-    
-    def _prepare_documents(self, text: Union[str, List[str], Dict[str, Any]]) -> DocumentArray:
-        """
-        Convert input text to DocumentArray for processing.
-        
-        Args:
-            text: Input text in various formats
+                    # Parse response
+                    result = await response.json()
             
-        Returns:
-            DocumentArray ready for processing
-        """
-        # Import here to avoid issues if jina is not installed
-        from docarray import Document, DocumentArray
-        
-        # Case 1: Already processed documents dict
-        if isinstance(text, dict) and "documents" in text:
-            docs = DocumentArray()
-            for doc_data in text["documents"]:
-                doc = Document(text=doc_data.get("text", ""))
-                if "id" in doc_data:
-                    doc.id = doc_data["id"]
-                if "tags" in doc_data:
-                    doc.tags = doc_data["tags"]
-                docs.append(doc)
-            return docs
-        
-        # Case 2: String
-        elif isinstance(text, str):
-            return DocumentArray([Document(text=text)])
-        
-        # Case 3: List of strings
-        elif isinstance(text, list):
-            return DocumentArray([Document(text=t) for t in text if isinstance(t, str)])
-        
-        # Case 4: Unknown format
-        else:
-            raise ValueError("Text must be a string, list of strings, or processed document")
+            # Extract matches
+            matches = result.get("matches", [])
+            
+            if span:
+                span.update(output={"match_count": len(matches)})
+            
+            return matches
+            
+        except Exception as e:
+            logger.error(f"Error searching index: {str(e)}")
+            
+            if span:
+                span.update(output={"error": str(e)})
+            
+            return []
     
-    def _vector_search(self, query_embedding: List[float], corpus: List[Dict[str, Any]], top_k: int = 5) -> List[Dict[str, Any]]:
+    async def calculate_similarities(
+        self,
+        query_embedding: List[float],
+        embeddings: List[List[float]]
+    ) -> List[float]:
         """
-        Perform vector similarity search.
+        Calculate cosine similarities between query and document embeddings.
         
         Args:
             query_embedding: Query embedding
-            corpus: List of documents with embeddings
-            top_k: Number of results to return
+            embeddings: List of document embeddings
             
         Returns:
-            List of similar documents with scores
+            List of similarity scores
         """
-        # Convert to numpy arrays
-        query_vec = np.array(query_embedding)
+        # Convert to numpy arrays for easier computation
+        query_np = np.array(query_embedding)
+        docs_np = np.array(embeddings)
         
-        # Calculate cosine similarity for each document
-        results_with_scores = []
-        for doc in corpus:
-            doc_vec = np.array(doc["embedding"])
-            
-            # Calculate cosine similarity
-            similarity = np.dot(query_vec, doc_vec) / (np.linalg.norm(query_vec) * np.linalg.norm(doc_vec))
-            
-            results_with_scores.append({
-                "id": doc.get("id", ""),
-                "text": doc.get("text", ""),
-                "score": float(similarity)
-            })
+        # Normalize vectors
+        query_norm = np.linalg.norm(query_np)
+        docs_norm = np.linalg.norm(docs_np, axis=1)
         
-        # Sort by score (descending) and take top_k
-        results_with_scores.sort(key=lambda x: x["score"], reverse=True)
-        return results_with_scores[:top_k]
+        # Avoid division by zero
+        query_norm = max(query_norm, 1e-10)
+        docs_norm = np.maximum(docs_norm, 1e-10)
+        
+        # Calculate cosine similarity
+        query_normalized = query_np / query_norm
+        docs_normalized = docs_np / docs_norm[:, np.newaxis]
+        similarities = np.dot(docs_normalized, query_normalized)
+        
+        return similarities.tolist()
+    
+    async def cluster_embeddings(
+        self,
+        embeddings: List[List[float]],
+        n_clusters: int = 3
+    ) -> Dict[int, List[int]]:
+        """
+        Cluster embeddings using K-means.
+        
+        Args:
+            embeddings: List of embeddings to cluster
+            n_clusters: Number of clusters
+            
+        Returns:
+            Dictionary mapping cluster IDs to document indices
+        """
+        try:
+            from sklearn.cluster import KMeans
+            
+            # Convert to numpy array
+            embeddings_np = np.array(embeddings)
+            
+            # Ensure we don't request more clusters than documents
+            n_clusters = min(n_clusters, len(embeddings))
+            
+            # Initialize and fit K-means
+            kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+            cluster_labels = kmeans.fit_predict(embeddings_np)
+            
+            # Group document indices by cluster
+            clusters = {}
+            for i, label in enumerate(cluster_labels):
+                if label not in clusters:
+                    clusters[int(label)] = []
+                clusters[int(label)].append(i)
+            
+            return clusters
+            
+        except Exception as e:
+            logger.error(f"Error clustering embeddings: {str(e)}")
+            # Return a single cluster with all documents
+            return {0: list(range(len(embeddings)))}
+    
+    async def generate_text(
+        self,
+        prompt: str,
+        model: str = "jina-chat",
+        max_tokens: int = 500,
+        temperature: float = 0.7
+    ) -> Dict[str, Any]:
+        """
+        Generate text using Jina's LLM services.
+        
+        Args:
+            prompt: Text prompt
+            model: Model to use
+            max_tokens: Maximum tokens to generate
+            temperature: Temperature for sampling
+            
+        Returns:
+            Generated text response
+        """
+        span = None
+        if self.tracer:
+            span = self.tracer.span(
+                name="jina_generate_text",
+                input={"model": model, "max_tokens": max_tokens}
+            )
+        
+        try:
+            # Prepare request
+            url = f"{self.base_url}/chat/completions"
+            payload = {
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": max_tokens,
+                "temperature": temperature
+            }
+            
+            # Send request
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    url,
+                    headers=self.headers,
+                    json=payload
+                ) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        logger.error(f"Jina API error ({response.status}): {error_text}")
+                        if span:
+                            span.update(output={"error": error_text})
+                        return {"text": "", "error": error_text}
+                    
+                    # Parse response
+                    result = await response.json()
+            
+            # Extract generated text
+            choices = result.get("choices", [])
+            if choices:
+                text = choices[0].get("message", {}).get("content", "")
+            else:
+                text = ""
+            
+            if span:
+                span.update(output={"status": "success"})
+            
+            return {"text": text, "model": model}
+            
+        except Exception as e:
+            logger.error(f"Error generating text with Jina: {str(e)}")
+            
+            if span:
+                span.update(output={"error": str(e)})
+            
+            return {"text": "", "error": str(e)}

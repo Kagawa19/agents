@@ -1,90 +1,156 @@
-import json
-import logging
-from typing import Dict, List
-
+# api/websocket.py
+from typing import Dict, Any, List, Optional
 from fastapi import WebSocket, WebSocketDisconnect
-
+import logging
+import uuid
+import json
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
 class ConnectionManager:
-    """
-    Manages WebSocket connections.
-    Handles connection registration, messaging, and disconnection.
-    """
+    """Manages WebSocket connections."""
     
     def __init__(self):
-        """
-        Initialize the connection manager.
-        """
-        self.active_connections: List[WebSocket] = []
+        """Initialize the connection manager."""
+        self.active_connections: Dict[str, WebSocket] = {}
     
-    async def connect(self, websocket: WebSocket) -> None:
+    async def connect(self, websocket: WebSocket) -> str:
         """
-        Register a new WebSocket connection.
+        Connects a WebSocket client.
         
         Args:
-            websocket: WebSocket connection
+            websocket: The WebSocket connection
+            
+        Returns:
+            str: The client identifier
         """
+        # Accept the connection
         await websocket.accept()
-        self.active_connections.append(websocket)
-        logger.info(f"Client connected. Total connections: {len(self.active_connections)}")
+        
+        # Generate a client ID
+        client_id = str(uuid.uuid4())
+        
+        # Store the connection
+        self.active_connections[client_id] = websocket
+        
+        logger.info(f"Client connected: {client_id}")
+        
+        # Send welcome message
+        await websocket.send_text(json.dumps({
+            "type": "connected",
+            "client_id": client_id,
+            "time": datetime.utcnow().isoformat(),
+            "message": "Connected to multiagent system"
+        }))
+        
+        return client_id
     
-    def disconnect(self, websocket: WebSocket) -> None:
+    async def disconnect(self, client_id: str) -> None:
         """
-        Remove a WebSocket connection.
+        Disconnects a client.
         
         Args:
-            websocket: WebSocket connection
+            client_id: The client ID to disconnect
         """
-        self.active_connections.remove(websocket)
-        logger.info(f"Client disconnected. Total connections: {len(self.active_connections)}")
+        if client_id in self.active_connections:
+            del self.active_connections[client_id]
+            logger.info(f"Client disconnected: {client_id}")
     
-    async def send_personal_message(self, message: dict, websocket: WebSocket) -> None:
+    async def broadcast(self, message: Dict[str, Any], client_id: Optional[str] = None) -> None:
         """
-        Send a message to a specific WebSocket.
+        Broadcasts messages to connected clients.
         
         Args:
-            message: Message to send
-            websocket: WebSocket to send to
+            message: The message to broadcast
+            client_id: Optional client ID to send to a specific client
         """
-        await websocket.send_json(message)
-    
-    async def broadcast(self, message: dict) -> None:
-        """
-        Send a message to all connected WebSockets.
+        # Add timestamp if not present
+        if "time" not in message:
+            message["time"] = datetime.utcnow().isoformat()
         
-        Args:
-            message: Message to send
-        """
-        disconnected = []
-        for connection in self.active_connections:
+        # Convert to JSON
+        message_json = json.dumps(message)
+        
+        # Send to specific client if specified
+        if client_id:
+            if client_id in self.active_connections:
+                try:
+                    await self.active_connections[client_id].send_text(message_json)
+                    logger.debug(f"Message sent to client {client_id}")
+                except Exception as e:
+                    logger.error(f"Error sending message to client {client_id}: {str(e)}")
+                    await self.disconnect(client_id)
+            return
+        
+        # Broadcast to all clients
+        disconnected_clients = []
+        for client_id, websocket in self.active_connections.items():
             try:
-                await connection.send_json(message)
-            except Exception:
-                disconnected.append(connection)
+                await websocket.send_text(message_json)
+            except Exception as e:
+                logger.error(f"Error sending message to client {client_id}: {str(e)}")
+                disconnected_clients.append(client_id)
         
-        # Clean up disconnected connections
-        for connection in disconnected:
-            self.disconnect(connection)
+        # Clean up disconnected clients
+        for client_id in disconnected_clients:
+            await self.disconnect(client_id)
 
-
+# Initialize connection manager
 connection_manager = ConnectionManager()
 
 async def websocket_endpoint(websocket: WebSocket) -> None:
     """
-    WebSocket endpoint for real-time updates.
+    Handles WebSocket connections.
     
     Args:
-        websocket: WebSocket connection
+        websocket: The WebSocket connection
     """
-    await connection_manager.connect(websocket)
+    client_id = await connection_manager.connect(websocket)
     
     try:
         while True:
-            # Just keep the connection alive
-            # We don't expect clients to send messages
+            # Wait for messages from the client
             data = await websocket.receive_text()
-            logger.debug(f"Received message: {data}")
+            
+            try:
+                # Parse JSON message
+                message = json.loads(data)
+                
+                # Handle message based on type
+                message_type = message.get("type", "unknown")
+                
+                if message_type == "ping":
+                    # Respond to ping with pong
+                    await websocket.send_text(json.dumps({
+                        "type": "pong",
+                        "time": datetime.utcnow().isoformat()
+                    }))
+                elif message_type == "subscribe":
+                    # Handle subscription to task updates
+                    task_id = message.get("task_id")
+                    if task_id:
+                        # Store task subscription for client
+                        # This would typically involve a more complex subscription system
+                        logger.info(f"Client {client_id} subscribed to task {task_id}")
+                        
+                        # Send acknowledgment
+                        await websocket.send_text(json.dumps({
+                            "type": "subscribed",
+                            "task_id": task_id,
+                            "time": datetime.utcnow().isoformat()
+                        }))
+                else:
+                    # Unknown message type
+                    logger.warning(f"Unknown message type from client {client_id}: {message_type}")
+                
+            except json.JSONDecodeError:
+                logger.warning(f"Invalid JSON from client {client_id}")
+                
     except WebSocketDisconnect:
-        connection_manager.disconnect(websocket)
+        logger.info(f"Client {client_id} disconnected")
+    except Exception as e:
+        logger.error(f"WebSocket error for client {client_id}: {str(e)}")
+    finally:
+        # Clean up on disconnect
+        await connection_manager.disconnect(client_id)

@@ -6,7 +6,7 @@ Defines Celery tasks for executing workflows and agents.
 import logging
 import time
 from typing import Any, Dict, Optional
-
+import traceback
 from celery import states
 from celery.exceptions import MaxRetriesExceededError, Retry
 
@@ -19,6 +19,7 @@ from multiagent.app.worker.celery_app import celery_app
 logger = logging.getLogger(__name__)
 
 
+@celery_app.task(bind=True, name="app.worker.tasks.execute_workflow_task")
 @celery_app.task(bind=True, name="app.worker.tasks.execute_workflow_task")
 def execute_workflow_task(
     self,
@@ -51,22 +52,102 @@ def execute_workflow_task(
             status="processing"
         )
     
+    # Send initial progress update
+    update_progress.delay(
+        task_id=self.request.id,
+        status="processing",
+        progress=10,
+        current_step="Initializing workflow execution"
+    )
+    
     try:
-        # Initialize the workflow manager
-        from app.monitoring.tracer import get_tracer
-        from app.orchestrator.manager import AgentManager
-        from app.orchestrator.workflow import WorkflowManager
-        from app.core.config import settings
+        # Initialize components
+        try:
+            # Initialize the workflow manager
+            from multiagent.app.monitoring.tracer import get_tracer
+            from multiagent.app.orchestrator.manager import AgentManager
+            from multiagent.app.orchestrator.workflow import WorkflowManager
+            from multiagent.app.core.config import settings
+            
+            # Send progress update
+            update_progress.delay(
+                task_id=self.request.id,
+                status="processing",
+                progress=20,
+                current_step="Setting up execution environment"
+            )
+            
+            tracer = get_tracer()
+            agent_manager = AgentManager(settings, tracer)
+            agent_manager.initialize()
+            
+            # Send progress update
+            update_progress.delay(
+                task_id=self.request.id,
+                status="processing",
+                progress=30,
+                current_step="Initializing agent manager"
+            )
+            
+            workflow_manager = WorkflowManager(agent_manager, tracer)
+            
+            # Send progress update
+            update_progress.delay(
+                task_id=self.request.id,
+                status="processing",
+                progress=40,
+                current_step="Environment setup complete"
+            )
+            
+        except Exception as setup_error:
+            # Handle setup errors separately
+            error_msg = f"Error setting up workflow environment: {str(setup_error)}"
+            logger.error(error_msg)
+            
+            # Send specific error progress update
+            update_progress.delay(
+                task_id=self.request.id,
+                status="failed",
+                progress=0,
+                error=error_msg
+            )
+            
+            # Save specific error to database
+            with SessionLocal() as db:
+                crud_result.save_result(
+                    db=db,
+                    task_id=self.request.id,
+                    query=input_data.get("query", ""),
+                    workflow=workflow_id,
+                    result={"error": error_msg},
+                    user_id=input_data.get("user_id"),
+                    status="failed"
+                )
+            
+            # Re-raise with more specific message
+            raise Exception(error_msg)
         
-        tracer = get_tracer()
-        agent_manager = AgentManager(settings, tracer)
-        agent_manager.initialize()
-        workflow_manager = WorkflowManager(agent_manager, tracer)
-        
-        # Execute the workflow
+        # Execute the workflow with progress updates
         start_time = time.time()
+        
+        # Send progress update before execution
+        update_progress.delay(
+            task_id=self.request.id,
+            status="processing",
+            progress=50,
+            current_step="Starting workflow execution"
+        )
+        
         result = workflow_manager.execute_workflow(workflow_id, input_data)
         execution_time = time.time() - start_time
+        
+        # Send progress update after execution
+        update_progress.delay(
+            task_id=self.request.id,
+            status="processing",
+            progress=90,
+            current_step="Workflow execution completed, finalizing results"
+        )
         
         # Save result to database
         with SessionLocal() as db:
@@ -95,7 +176,18 @@ def execute_workflow_task(
         return result
     
     except Exception as e:
-        logger.error(f"Error executing workflow {workflow_id}: {str(e)}")
+        error_msg = str(e)
+        stack_trace = traceback.format_exc()
+        logger.error(f"Error executing workflow {workflow_id}: {error_msg}\n{stack_trace}")
+        
+        # Create structured error response
+        error_details = {
+            "error": error_msg,
+            "workflow_id": workflow_id,
+            "task_id": self.request.id,
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()),
+            "trace": stack_trace if settings.DEBUG else "Enable DEBUG mode to see trace"
+        }
         
         # Save error to database
         with SessionLocal() as db:
@@ -104,7 +196,7 @@ def execute_workflow_task(
                 task_id=self.request.id,
                 query=input_data.get("query", ""),
                 workflow=workflow_id,
-                result={"error": str(e)},
+                result=error_details,
                 user_id=input_data.get("user_id"),
                 status="failed"
             )
@@ -114,12 +206,11 @@ def execute_workflow_task(
             task_id=self.request.id,
             status="failed",
             progress=0,
-            error=str(e)
+            error=error_msg
         )
         
-        # Re-raise the exception
-        raise
-
+        # Re-raise the exception with structured error
+        raise Exception(f"Workflow execution failed: {error_msg}")
 
 @celery_app.task(bind=True, name="app.worker.tasks.execute_agent_task")
 def execute_agent_task(
@@ -141,9 +232,9 @@ def execute_agent_task(
     
     try:
         # Initialize the agent manager
-        from app.monitoring.tracer import get_tracer
-        from app.orchestrator.manager import AgentManager
-        from app.core.config import settings
+        from multiagent.app.monitoring.tracer import get_tracer
+        from multiagent.app.orchestrator.manager import AgentManager
+        from multiagent.app.core.config import settings
         
         tracer = get_tracer()
         agent_manager = AgentManager(settings, tracer)

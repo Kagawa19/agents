@@ -7,6 +7,10 @@ import logging
 import os
 from celery import Celery
 from celery.signals import task_postrun, task_prerun, worker_init, worker_ready
+from datetime import datetime
+from multiagent.app.api.websocket import connection_manager
+from multiagent.app.db.session import SessionLocal
+from multiagent.app.db.crud.results import crud_result
 
 from multiagent.app.core.config import settings
 
@@ -78,6 +82,42 @@ def task_prerun_handler(task_id, task, *args, **kwargs):
         task: Task instance
     """
     logger.info(f"Starting task: {task.name} (ID: {task_id})")
+    
+    # Only handle workflow tasks
+    if task.name == "app.worker.tasks.execute_workflow_task":
+        try:
+            # Get task arguments
+            task_args = args[0] if args else []
+            task_kwargs = kwargs.get('kwargs', {})
+            
+            # Extract workflow_id and user_id if available
+            workflow_id = task_args[0] if len(task_args) > 0 else task_kwargs.get('workflow_id')
+            input_data = task_args[1] if len(task_args) > 1 else task_kwargs.get('input_data', {})
+            user_id = input_data.get('user_id')
+            
+            # Create message for clients
+            message = {
+                "type": "task_started",
+                "task_id": task_id,
+                "workflow_id": workflow_id,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+            
+            # Update database status to "started"
+            with SessionLocal() as db:
+                crud_result.update_status(db=db, task_id=task_id, status="processing")
+            
+            # Send notification to specific user if available, otherwise broadcast to all
+            from multiagent.app.api.websocket import connection_manager
+            if user_id:
+                connection_manager.broadcast(message, user_id)
+            else:
+                connection_manager.broadcast_all(message)
+                
+            logger.info(f"Sent start notification for task {task_id}")
+                
+        except Exception as e:
+            logger.error(f"Error sending task start notification: {str(e)}")
 
 
 @task_postrun.connect
@@ -92,3 +132,42 @@ def task_postrun_handler(task_id, task, retval, state, *args, **kwargs):
         state: Task state
     """
     logger.info(f"Task completed: {task.name} (ID: {task_id}, State: {state})")
+    
+    # Only send notifications for workflow tasks
+    if task.name == "app.worker.tasks.execute_workflow_task":
+        try:
+            # Create message for clients
+            message = {
+                "type": "task_completed",
+                "task_id": task_id,
+                "status": state,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+            
+            # Add result to message if successful
+            if state == "SUCCESS" and retval:
+                message["result"] = retval
+            
+            # Get user_id for the task to direct the notification
+            user_id = None
+            with SessionLocal() as db:
+                result_obj = crud_result.get_by_task_id(db=db, task_id=task_id)
+                if result_obj:
+                    user_id = result_obj.user_id
+                    
+                    # Update the result status in the database
+                    if state == "SUCCESS":
+                        crud_result.update_status(db=db, task_id=task_id, status="completed")
+                    elif state in ["FAILURE", "REVOKED"]:
+                        crud_result.update_status(db=db, task_id=task_id, status="failed")
+            
+            # Send notification to specific user if available, otherwise broadcast to all
+            if user_id:
+                connection_manager.broadcast(message, user_id)
+            else:
+                connection_manager.broadcast_all(message)
+                
+            logger.info(f"Sent completion notification for task {task_id}")
+                
+        except Exception as e:
+            logger.error(f"Error sending task completion notification: {str(e)}")
