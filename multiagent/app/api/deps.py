@@ -31,7 +31,7 @@ def get_tracer() -> LangfuseTracer:
     Returns:
         LangfuseTracer instance
     """
-    from app.core.config import settings
+    from multiagent.app.core.config import settings
     # Create a new LangfuseTracer with the updated constructor parameters
     return LangfuseTracer(
         secret_key=settings.LANGFUSE_SECRET_KEY,
@@ -51,7 +51,7 @@ def get_agent_manager(tracer: LangfuseTracer = Depends(get_tracer)) -> AgentMana
     Returns:
         AgentManager instance
     """
-    from app.core.config import settings
+    from multiagent.app.core.config import settings
     
     manager = AgentManager(settings, tracer)
     manager.initialize()
