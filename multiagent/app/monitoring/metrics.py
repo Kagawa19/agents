@@ -177,7 +177,7 @@ def metrics_endpoint() -> StarletteResponse:
     try:
         # Update active task counts
         try:
-            from app.worker.queue import TaskQueue
+            from multiagent.app.worker.queue import TaskQueue
             queue = TaskQueue()
             active_tasks = queue.get_active_tasks()
             

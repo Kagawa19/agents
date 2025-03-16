@@ -62,11 +62,11 @@ class AgentManager:
         Creates instances of all required external tools.
         """
         # Import tool classes
-        from app.tools.serper import SerperTool
-        from app.tools.jina import JinaTool
-        from app.tools.openai import OpenAITool
-        from app.tools.bedrock import BedrockTool
-        from app.tools.llamaindex import LlamaIndexTool
+        from multiagent.app.tools.serper import SerperTool
+        from multiagent.app.tools.jina import JinaTool
+        from multiagent.app.tools.openai import OpenAITool
+        from multiagent.app.tools.bedrock import BedrockTool
+        from multiagent.app.tools.llamaindex import LlamaIndexTool
         
         # Serper Tool
         try:
@@ -129,9 +129,9 @@ class AgentManager:
         Creates instances of all agent types.
         """
         # Import agent classes
-        from app.agents.researcher import ResearcherAgent
-        from app.agents.analyzer import AnalyzerAgent
-        from app.agents.summarizer import SummarizerAgent
+        from multiagent.app.agents.researcher import ResearcherAgent
+        from multiagent.app.agents.analyzer import AnalyzerAgent
+        from multiagent.app.agents.summarizer import SummarizerAgent
         
         # Researcher Agent
         try:
@@ -243,8 +243,8 @@ class AgentManager:
             execution_time: Execution time in seconds
         """
         try:
-            from app.db.session import SessionLocal
-            from app.db.models import AgentMetrics
+            from multiagent.app.db.session import SessionLocal
+            from multiagent.app.db.models import AgentMetrics
             from sqlalchemy.sql import func
             from datetime import datetime
             

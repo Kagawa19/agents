@@ -261,7 +261,7 @@ class Workflow:
             current_step: Current step being executed
             progress: Progress percentage (0-100)
         """
-        from app.worker.tasks import update_progress
+        from multiagent.app.worker.tasks import update_progress
         
         try:
             update_progress.delay(
