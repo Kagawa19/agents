@@ -2,7 +2,7 @@
 Task definitions for asynchronous processing.
 Defines Celery tasks for executing workflows and agents.
 """
-
+import json
 import logging
 import time
 from typing import Any, Dict, Optional
@@ -11,6 +11,7 @@ from celery import states
 from celery.exceptions import MaxRetriesExceededError, Retry
 
 from multiagent.app.api.websocket import connection_manager
+from multiagent.app.db.models import Result
 from multiagent.app.db.results import crud_result
 from multiagent.app.db.session import SessionLocal
 from multiagent.app.worker.celery_app import celery_app
@@ -21,6 +22,11 @@ logger = logging.getLogger(__name__)
 
 
 
+import asyncio
+import time
+import traceback
+from typing import Dict, Any
+
 @celery_app.task(bind=True, name="app.worker.tasks.execute_workflow_task")
 def execute_workflow_task(
     self,
@@ -28,7 +34,7 @@ def execute_workflow_task(
     input_data: Dict[str, Any]
 ) -> Dict[str, Any]:
     """
-    Execute a workflow asynchronously.
+    Execute a workflow asynchronously with robust error handling and async support.
     
     Args:
         workflow_id: ID of the workflow to execute
@@ -156,8 +162,27 @@ def execute_workflow_task(
             current_step="Starting workflow execution"
         )
         
-        # Actual workflow execution
-        result = workflow_manager.execute_workflow(workflow_id, input_data)
+        # Robust async workflow execution
+        async def safe_workflow_execute():
+            try:
+                # Use WorkflowManager to execute
+                result = await workflow_manager.execute_workflow(workflow_id, input_data)
+                
+                # Ensure result is fully serializable
+                try:
+                    json.dumps(result)
+                except TypeError:
+                    result = str(result)
+                
+                return result
+            
+            except Exception as e:
+                logger.error(f"Workflow execution internal error: {e}")
+                raise
+        
+        # Run async workflow execution
+        result = asyncio.run(safe_workflow_execute())
+        
         execution_time = time.time() - start_time
         
         # Log successful execution
@@ -323,19 +348,65 @@ def execute_agent_task(
     logger.info(f"Executing agent {agent_id} (Task ID: {self.request.id})")
     
     try:
-        # TODO: Implement actual agent execution logic
+        # Initialize agent manager
+        from multiagent.app.monitoring.tracer import get_tracer
+        from multiagent.app.orchestrator.manager import AgentManager
+        from multiagent.app.core.config import settings
+        
+        # Create tracer and agent manager
+        tracer = get_tracer()
+        agent_manager = AgentManager(settings, tracer)
+        agent_manager.initialize()
+        
+        # Start timing
         start_time = time.time()
-        result = {
-            "status": "success",
-            "data": f"Agent {agent_id} executed successfully"
-        }
+        
+        # Execute the agent
+        result = agent_manager.execute_agent(agent_id, input_data)
+        
+        # Calculate execution time
         execution_time = time.time() - start_time
         
-        result["execution_time"] = execution_time
+        # Ensure result is JSON serializable
+        try:
+            import json
+            json.dumps(result)
+        except TypeError:
+            result = str(result)
+        
+        # Add execution metadata
+        result = {
+            "status": "success",
+            "data": result,
+            "execution_time": execution_time
+        }
         
         logger.info(f"Agent {agent_id} executed successfully (Task ID: {self.request.id})")
         return result
     
     except Exception as e:
+        # Log the error
         logger.error(f"Error executing agent {agent_id}: {str(e)}")
+        
+        # Create error response
+        error_result = {
+            "status": "failed",
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+        
+        # Optionally save error to database or send notification
+        try:
+            with SessionLocal() as db:
+                crud_result.save_result(
+                    db=db,
+                    task_id=self.request.id,
+                    query=input_data.get('query', ''),
+                    workflow='agent_execution',
+                    result=error_result,
+                    status="failed"
+                )
+        except Exception as save_error:
+            logger.error(f"Failed to save error result: {save_error}")
+        
         raise

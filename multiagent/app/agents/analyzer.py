@@ -96,19 +96,19 @@ class AnalyzerAgent(BaseAgent):
                 
                 # Format and return results
                 result = {
-                    "analysis_results": {
-                        "summary": summary,
-                        "insights": insights,
-                        "clusters": clusters,
-                        "source_count": len(information),
-                        "analyzed_at": datetime.utcnow().isoformat()
-                    },
-                    "processing_time": time.time() - start_time,
-                    "status": "completed"
+                    "summary": summary,
+                    "insights": insights,
+                    "clusters": clusters,
+                    "source_count": len(information),
+                    "analyzed_at": datetime.utcnow().isoformat()
                 }
                 
                 logger.info(f"Analysis completed in {time.time() - start_time:.2f} seconds")
-                return result
+                return {
+                    "analysis_results": result,
+                    "processing_time": time.time() - start_time,
+                    "status": "completed"
+                }
                 
             except Exception as e:
                 logger.error(f"Error in analyzer execution: {str(e)}")
@@ -117,7 +117,7 @@ class AnalyzerAgent(BaseAgent):
                     "error": str(e),
                     "processing_time": time.time() - start_time
                 }
-    
+        
     async def _search_and_scrape(self, query: str, num_results: int = 5) -> List[Dict[str, Any]]:
         """Search the web and scrape content for the given query."""
         logger.info(f"Searching for: {query}")

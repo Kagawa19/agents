@@ -3,7 +3,10 @@ Agent manager implementation.
 Responsible for creating, configuring, and coordinating agents.
 """
 
+import asyncio
+import json
 import logging
+import time
 from typing import Dict, Any, Type, Optional
 
 from multiagent.app.agents.base import BaseAgent
@@ -197,17 +200,14 @@ class AgentManager:
     
     def execute_agent(self, agent_id: str, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Execute an agent with the given input data.
+        Execute an agent with robust async and sync support.
         
         Args:
             agent_id: ID of the agent to execute
             input_data: Input data for the agent
-            
+        
         Returns:
-            The agent's output
-            
-        Raises:
-            KeyError: If the agent does not exist
+            The agent's processed output
         """
         agent = self.get_agent(agent_id)
         
@@ -219,10 +219,42 @@ class AgentManager:
         
         try:
             logger.info(f"Executing agent: {agent_id}")
-            start_time = __import__('time').time()
-            result = agent.execute(input_data)
-            execution_time = __import__('time').time() - start_time
-            logger.info(f"Agent executed successfully: {agent_id} (execution time: {execution_time:.2f}s)")
+            start_time = time.time()
+            
+            # Attempt async execution first
+            async def safe_agent_execute():
+                try:
+                    # Priority 1: Check for explicit async_execute method
+                    if hasattr(agent, 'async_execute'):
+                        result = await agent.async_execute(input_data)
+                    
+                    # Priority 2: Run standard execute method in thread pool
+                    else:
+                        loop = asyncio.get_event_loop()
+                        result = await loop.run_in_executor(
+                            None, 
+                            agent.execute, 
+                            input_data
+                        )
+                    
+                    # Ensure result is JSON serializable
+                    try:
+                        json.dumps(result)
+                    except TypeError:
+                        result = str(result)
+                    
+                    return result
+                
+                except Exception as e:
+                    logger.error(f"Agent execution error: {e}")
+                    raise
+            
+            # Run the async function and get result
+            result = asyncio.run(safe_agent_execute())
+            
+            execution_time = time.time() - start_time
+            
+            logger.info(f"Agent {agent_id} executed successfully (execution time: {execution_time:.2f}s)")
             
             # Update agent metrics
             self._update_agent_metrics(agent_id, True, execution_time)
@@ -231,9 +263,15 @@ class AgentManager:
             span.update(output=result)
             
             return result
+        
         except Exception as e:
             # Update span with error
             span.update(output={"status": "error", "error": str(e)})
+            logger.error(f"Comprehensive agent execution error for {agent_id}: {str(e)}")
+            
+            # Update agent metrics for failure
+            self._update_agent_metrics(agent_id, False, time.time() - start_time)
+            
             raise
     
     def _update_agent_metrics(self, agent_id: str, success: bool, execution_time: float) -> None:
