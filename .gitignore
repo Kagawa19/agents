@@ -55,3 +55,4 @@ terraform.tfvars
 htmlcov/
 .pytest_cache/
 
+.env
