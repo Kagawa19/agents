@@ -9,6 +9,7 @@ import time
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional
 
+
 from multiagent.app.db.results import crud_result
 from multiagent.app.db.session import SessionLocal
 from multiagent.app.monitoring.tracer import LangfuseTracer
@@ -133,16 +134,11 @@ class Workflow:
         Returns:
             The final result of the workflow
         """
-        # Simply call the existing execute method
-        # Since execute is synchronous, we'll run it in a thread pool
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            None, 
-            self.execute, 
-            initial_input
-        )
+        return await self.execute(initial_input)
 
-    def execute(self, initial_input: Dict[str, Any]) -> Dict[str, Any]:
+    
+
+    async def execute(self, initial_input: Dict[str, Any]) -> Dict[str, Any]:
         """
         Execute the workflow from start to finish.
         
@@ -152,210 +148,276 @@ class Workflow:
         Returns:
             The final result of the workflow
         """
-        async def async_execute():
-            # Create a span for the workflow execution
-            span = self.tracer.span(name=f"workflow_{self.name}")
+        # Create a span for the workflow execution
+        span = self.tracer.span(name=f"workflow_{self.name}")
+        
+        try:
+            logger.info(f"Executing workflow: {self.name}")
             
-            try:
-                logger.info(f"Executing workflow: {self.name}")
-                
-                # Get the task ID
-                task_id = initial_input.get("task_id")
-                
-                # Initialize workflow state
-                state = {"input": initial_input}
-                
-                # Initialize result data
-                result_data = {
-                    "query": initial_input.get("query", ""),
-                    "workflow": self.name,
-                    "steps": [],
-                    "started_at": datetime.utcnow().isoformat(),
-                    "processing_time": 0
-                }
-                
-                # Record the workflow start time
-                start_time = time.time()
-                
-                # Create or update the result record in the database
-                with SessionLocal() as db:
-                    if task_id:
-                        db_result = crud_result.get_by_task_id(db, task_id=task_id)
-                        if not db_result:
-                            db_result = crud_result.save_result(
-                                db=db,
-                                task_id=task_id,
-                                query=initial_input.get("query", ""),
-                                workflow=self.name,
-                                user_id=initial_input.get("user_id"),
-                                status="processing"
-                            )
-                        result_id = db_result.id
-                    else:
-                        # If no task ID, create a database record anyway
+            # Get the task ID
+            task_id = initial_input.get("task_id")
+            
+            # Initialize workflow state
+            state = {"input": initial_input}
+            
+            # Initialize result data
+            result_data = {
+                "query": initial_input.get("query", ""),
+                "workflow": self.name,
+                "steps": [],
+                "started_at": datetime.utcnow().isoformat(),
+                "processing_time": 0
+            }
+            
+            # Record the workflow start time
+            start_time = time.time()
+            
+            # Create or update the result record in the database
+            with SessionLocal() as db:
+                if task_id:
+                    db_result = crud_result.get_by_task_id(db, task_id=task_id)
+                    if not db_result:
                         db_result = crud_result.save_result(
                             db=db,
-                            task_id=f"direct-{int(time.time())}",
+                            task_id=task_id,
                             query=initial_input.get("query", ""),
                             workflow=self.name,
                             user_id=initial_input.get("user_id"),
                             status="processing"
                         )
-                        result_id = db_result.id
-                
-                # Execute each step in sequence
-                total_steps = len(self.steps)
-                for i, step in enumerate(self.steps):
-                    agent_id = step["agent_id"]
-                    input_mapper = step["input_mapper"]
-                    description = step["description"]
-                    
-                    logger.info(f"Executing step {i+1}/{total_steps}: {description} (agent: {agent_id})")
-                    
-                    # Map state to agent input
-                    agent_input = input_mapper(state)
-                    
-                    # Update progress if task_id is provided
-                    if task_id:
-                        progress = ((i + 1) / total_steps) * 100
-                        self._update_progress(task_id, agent_id, progress)
-                    
-                    # Execute agent
-                    step_start_time = time.time()
-                    step_span = self.tracer.span(name=f"step_{i}_{agent_id}")
-                    
-                    try:
-                        # Execute the agent (with async support)
-                        agent_output = await self._execute_agent_async(agent_id, agent_input)
-                        
-                        # Calculate execution time
-                        step_execution_time = time.time() - step_start_time
-                        
-                        # Save agent execution details to database
-                        with SessionLocal() as db:
-                            crud_result.save_agent_execution(
-                                db=db,
-                                result_id=result_id,
-                                agent_id=agent_id,
-                                input_data=agent_input,
-                                output_data=agent_output,
-                                status="completed",
-                                execution_time=step_execution_time
-                            )
-                        
-                        # Record step details
-                        step_data = {
-                            "step": i + 1,
-                            "agent_id": agent_id,
-                            "description": description,
-                            "execution_time": step_execution_time,
-                            "status": "completed"
-                        }
-                        result_data["steps"].append(step_data)
-                        
-                        # Update state with agent output
-                        state[agent_id] = agent_output
-                        
-                        # Update step span with success
-                        step_span.update(output={"status": "completed", "execution_time": step_execution_time})
-                        
-                        logger.info(f"Step {i+1}/{total_steps} completed (execution time: {step_execution_time:.2f}s)")
-                    
-                    except Exception as e:
-                        logger.error(f"Error executing step {i+1}/{total_steps}: {str(e)}")
-                        step_execution_time = time.time() - step_start_time
-                        step_span.update(output={"status": "failed", "error": str(e), "execution_time": step_execution_time})
-                        
-                        with SessionLocal() as db:
-                            crud_result.save_agent_execution(
-                                db=db,
-                                result_id=result_id,
-                                agent_id=agent_id,
-                                input_data=agent_input,
-                                error=str(e),
-                                status="failed",
-                                execution_time=step_execution_time
-                            )
-                        
-                        step_data = {
-                            "step": i + 1,
-                            "agent_id": agent_id,
-                            "description": description,
-                            "execution_time": step_execution_time,
-                            "status": "failed",
-                            "error": str(e)
-                        }
-                        result_data["steps"].append(step_data)
-                        
-                        result_data["error"] = str(e)
-                        result_data["status"] = "failed"
-                        
-                        with SessionLocal() as db:
-                            crud_result.save_result(
-                                db=db,
-                                task_id=task_id or f"direct-{int(time.time())}",
-                                query=initial_input.get("query", ""),
-                                workflow=self.name,
-                                result=result_data,
-                                user_id=initial_input.get("user_id"),
-                                status="failed"
-                            )
-                        
-                        span.update(output={"status": "failed", "error": str(e)})
-                        raise
-                
-                # Calculate total processing time
-                total_execution_time = time.time() - start_time
-                result_data["processing_time"] = total_execution_time
-                result_data["completed_at"] = datetime.utcnow().isoformat()
-                result_data["status"] = "completed"
-                
-                # Final result is the output of the last agent
-                last_agent_id = self.steps[-1]["agent_id"]
-                if last_agent_id in state:
-                    # Extract key information from the final result
-                    final_result = state[last_agent_id]
-                    
-                    # Depending on the agent, extract different information
-                    if last_agent_id == "summarizer":
-                        result_data["summary"] = final_result.get("summary", "")
-                        result_data["confidence_score"] = final_result.get("confidence_score", 0)
-                    else:
-                        # Default to the full result
-                        result_data["result"] = final_result
+                    result_id = db_result.id
                 else:
-                    logger.warning(f"Last agent {last_agent_id} output not found in state")
-                    result_data["result"] = {"error": f"Last agent {last_agent_id} output not found"}
-                
-                # Add the full state to the result data (useful for debugging)
-                result_data["agent_outputs"] = {k: v for k, v in state.items() if k != "input"}
-                
-                # Save result to database
-                with SessionLocal() as db:
-                    crud_result.save_result(
+                    # If no task ID, create a database record anyway
+                    db_result = crud_result.save_result(
                         db=db,
-                        task_id=task_id or f"direct-{int(time.time())}",
+                        task_id=f"direct-{int(time.time())}",
                         query=initial_input.get("query", ""),
                         workflow=self.name,
-                        result=result_data,
                         user_id=initial_input.get("user_id"),
-                        status="completed"
+                        status="processing"
                     )
+                    result_id = db_result.id
+            
+            # Execute each step in sequence
+            total_steps = len(self.steps)
+            for i, step in enumerate(self.steps):
+                agent_id = step["agent_id"]
+                input_mapper = step["input_mapper"]
+                description = step["description"]
                 
-                # Update workflow span with success
-                span.update(output={"status": "completed", "processing_time": total_execution_time})
+                logger.info(f"Executing step {i+1}/{total_steps}: {description} (agent: {agent_id})")
                 
-                logger.info(f"Workflow {self.name} execution completed (total time: {total_execution_time:.2f}s)")
-                return result_data
+                # Map state to agent input
+                try:
+                    agent_input = input_mapper(state)
+                except Exception as e:
+                    logger.error(f"Error in input mapping for agent {agent_id}: {str(e)}")
+                    # Create a more informative error message with state info
+                    error_detail = f"Input mapping error: {str(e)}. State keys: {list(state.keys())}"
+                    if agent_id in state:
+                        agent_state_type = type(state[agent_id]).__name__
+                        error_detail += f", {agent_id} type: {agent_state_type}"
+                    
+                    result_data["error"] = error_detail
+                    result_data["status"] = "failed"
+                    
+                    with SessionLocal() as db:
+                        crud_result.save_result(
+                            db=db,
+                            task_id=task_id or f"direct-{int(time.time())}",
+                            query=initial_input.get("query", ""),
+                            workflow=self.name,
+                            result=result_data,
+                            user_id=initial_input.get("user_id"),
+                            status="failed"
+                        )
+                    
+                    span.update(output={"status": "failed", "error": error_detail})
+                    raise ValueError(error_detail)
                 
-            except Exception as e:
-                # Update workflow span with error
-                span.update(output={"status": "failed", "error": str(e)})
-                # Re-raise the exception
-                raise
-
-        # Run the async function synchronously
-        return asyncio.run(async_execute())
+                # Update progress if task_id is provided
+                if task_id:
+                    progress = ((i + 1) / total_steps) * 100
+                    self._update_progress(task_id, agent_id, progress)
+                
+                # Execute agent
+                step_start_time = time.time()
+                step_span = self.tracer.span(name=f"step_{i}_{agent_id}")
+                
+                try:
+                    # Execute the agent (with proper async handling)
+                    agent_output = await self._execute_agent_async(agent_id, agent_input)
+                    
+                    # Ensure agent_output is not a coroutine
+                    if asyncio.iscoroutine(agent_output):
+                        logger.warning(f"Agent {agent_id} returned a coroutine instead of a result")
+                        agent_output = await agent_output  # Await the coroutine to get the actual result
+                    
+                    # Ensure agent_output is a dictionary
+                    if not isinstance(agent_output, dict):
+                        if isinstance(agent_output, str):
+                            try:
+                                # Try to parse as JSON if it's a string
+                                agent_output = json.loads(agent_output)
+                            except json.JSONDecodeError:
+                                # If it's not valid JSON, wrap it in a dictionary
+                                agent_output = {"result": agent_output, "status": "completed"}
+                        else:
+                            # For any other type, wrap it in a dictionary
+                            agent_output = {"result": str(agent_output), "status": "completed"}
+                    
+                    logger.info(f"Agent '{agent_id}' output: {agent_output}")
+                    
+                    # Log the state before updating
+                    logger.info(f"State before update: {state}")
+                    
+                    # Update state with agent output
+                    state[agent_id] = agent_output
+                    
+                    # Log the state after updating
+                    logger.info(f"State after update: {state}")
+                    
+                    # Calculate execution time
+                    step_execution_time = time.time() - step_start_time
+                    
+                    # Save agent execution details to database
+                    with SessionLocal() as db:
+                        crud_result.save_agent_execution(
+                            db=db,
+                            result_id=result_id,
+                            agent_id=agent_id,
+                            input_data=agent_input,
+                            output_data=agent_output,
+                            status="completed",
+                            execution_time=step_execution_time
+                        )
+                    
+                    # Record step details
+                    step_data = {
+                        "step": i + 1,
+                        "agent_id": agent_id,
+                        "description": description,
+                        "execution_time": step_execution_time,
+                        "status": "completed"
+                    }
+                    result_data["steps"].append(step_data)
+                    
+                    # Update step span with success
+                    step_span.update(output={"status": "completed", "execution_time": step_execution_time})
+                    
+                    logger.info(f"Step {i+1}/{total_steps} completed (execution time: {step_execution_time:.2f}s)")
+                
+                except Exception as e:
+                    logger.error(f"Error executing step {i+1}/{total_steps}: {str(e)}")
+                    step_execution_time = time.time() - step_start_time
+                    step_span.update(output={"status": "failed", "error": str(e), "execution_time": step_execution_time})
+                    
+                    with SessionLocal() as db:
+                        crud_result.save_agent_execution(
+                            db=db,
+                            result_id=result_id,
+                            agent_id=agent_id,
+                            input_data=agent_input,
+                            error=str(e),
+                            status="failed",
+                            execution_time=step_execution_time
+                        )
+                    
+                    step_data = {
+                        "step": i + 1,
+                        "agent_id": agent_id,
+                        "description": description,
+                        "execution_time": step_execution_time,
+                        "status": "failed",
+                        "error": str(e)
+                    }
+                    result_data["steps"].append(step_data)
+                    
+                    result_data["error"] = str(e)
+                    result_data["status"] = "failed"
+                    
+                    with SessionLocal() as db:
+                        crud_result.save_result(
+                            db=db,
+                            task_id=task_id or f"direct-{int(time.time())}",
+                            query=initial_input.get("query", ""),
+                            workflow=self.name,
+                            result=result_data,
+                            user_id=initial_input.get("user_id"),
+                            status="failed"
+                        )
+                    
+                    span.update(output={"status": "failed", "error": str(e)})
+                    raise
+            
+            # Calculate total processing time
+            total_execution_time = time.time() - start_time
+            result_data["processing_time"] = total_execution_time
+            result_data["completed_at"] = datetime.utcnow().isoformat()
+            result_data["status"] = "completed"
+            
+            # Log the final state before extracting the result
+            logger.info(f"Final state: {state}")
+            
+            # Final result is the output of the last agent
+            last_agent_id = self.steps[-1]["agent_id"]
+            if last_agent_id in state:
+                # Log the specific agent state
+                logger.info(f"Last agent '{last_agent_id}' state: {state[last_agent_id]}")
+                
+                # Extract key information from the final result
+                final_result = state[last_agent_id]
+                
+                # Ensure final_result is a dictionary
+                if not isinstance(final_result, dict):
+                    if isinstance(final_result, str):
+                        try:
+                            # Try to parse as JSON if it's a string
+                            final_result = json.loads(final_result)
+                        except json.JSONDecodeError:
+                            # If not valid JSON, create a basic result dictionary
+                            final_result = {"result": final_result}
+                    else:
+                        # For any other type, create a basic result dictionary
+                        final_result = {"result": str(final_result)}
+                
+                # Depending on the agent, extract different information
+                if last_agent_id == "summarizer":
+                    result_data["summary"] = final_result.get("summary", "")
+                    result_data["confidence_score"] = final_result.get("confidence_score", 0)
+                else:
+                    # Default to the full result
+                    result_data["result"] = final_result
+            else:
+                logger.warning(f"Last agent {last_agent_id} output not found in state")
+                result_data["result"] = {"error": f"Last agent {last_agent_id} output not found"}
+            
+            # Add the full state to the result data (useful for debugging)
+            result_data["agent_outputs"] = {k: v for k, v in state.items() if k != "input"}
+            
+            # Save result to database
+            with SessionLocal() as db:
+                crud_result.save_result(
+                    db=db,
+                    task_id=task_id or f"direct-{int(time.time())}",
+                    query=initial_input.get("query", ""),
+                    workflow=self.name,
+                    result=result_data,
+                    user_id=initial_input.get("user_id"),
+                    status="completed"
+                )
+            
+            # Update workflow span with success
+            span.update(output={"status": "completed", "processing_time": total_execution_time})
+            
+            logger.info(f"Workflow {self.name} execution completed (total time: {total_execution_time:.2f}s)")
+            return result_data
+            
+        except Exception as e:
+            # Update workflow span with error
+            span.update(output={"status": "failed", "error": str(e)})
+            # Re-raise the exception
+            raise
     
     def _update_progress(self, task_id: str, current_step: str, progress: float) -> None:
         """
@@ -402,6 +464,7 @@ class Workflow:
         }
 
 
+
 class ResearchWorkflow(Workflow):
     """
     Standard research workflow that uses all three agents.
@@ -436,21 +499,60 @@ class ResearchWorkflow(Workflow):
             input_mapper=lambda state: {
                 "query": state["input"]["query"],
                 "information": state["researcher"]["processed_information"],
-                "search_web": state["input"].get("enable_analyzer_search", False),  # Add optional web search flag
-                "num_results": state["input"].get("analyzer_search_results", 3)     # Add number of results to fetch
+                "search_web": state["input"].get("enable_analyzer_search", False),
+                "num_results": state["input"].get("analyzer_search_results", 3)
             },
             description="Analyze and extract key insights from research"
         )
         
-        # Step 3: Summarize
+        # Step 3: Summarize - FIXED version with safe access pattern
         self.add_step(
             agent_id="summarizer",
             input_mapper=lambda state: {
                 "query": state["input"]["query"],
-                "analysis_results": state["analyzer"]["analysis_results"]
+                "analysis_results": self._safely_get_analysis_results(state)
             },
             description="Create a concise summary of the findings"
         )
+    
+    def _safely_get_analysis_results(self, state: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Safely extract analysis results from the state, handling cases where 
+        the analyzer output might be a string instead of a dictionary.
+        
+        Args:
+            state: Current workflow state
+            
+        Returns:
+            Analysis results dictionary
+        """
+        analyzer_data = state.get("analyzer")
+        
+        # If analyzer data is missing
+        if analyzer_data is None:
+            logger.error("Analyzer data is missing from workflow state")
+            return {"error": "Missing analyzer data"}
+            
+        # If analyzer data is a dictionary (normal case)
+        if isinstance(analyzer_data, dict):
+            return analyzer_data.get("analysis_results", {"error": "No analysis results in output"})
+            
+        # If analyzer data is a string (serialized JSON)
+        if isinstance(analyzer_data, str):
+            try:
+                parsed_data = json.loads(analyzer_data)
+                if isinstance(parsed_data, dict):
+                    return parsed_data.get("analysis_results", {"error": "No analysis results in parsed output"})
+                else:
+                    logger.error(f"Parsed analyzer data is not a dictionary: {type(parsed_data)}")
+                    return {"error": "Invalid analyzer data format after parsing"}
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse analyzer data as JSON: {e}")
+                return {"error": "Failed to parse analyzer output"}
+        
+        # If analyzer data is some other type
+        logger.error(f"Unexpected analyzer data type: {type(analyzer_data)}")
+        return {"error": f"Unexpected analyzer data type: {type(analyzer_data)}"}
 
 
 class DirectResearchWorkflow(Workflow):
@@ -481,15 +583,54 @@ class DirectResearchWorkflow(Workflow):
             description="Search for information across the web"
         )
         
-        # Step 2: Summarize (directly from research)
+        # Step 2: Summarize (directly from research) - FIXED version with safe access
         self.add_step(
             agent_id="summarizer",
             input_mapper=lambda state: {
                 "query": state["input"]["query"],
-                "analysis_results": state["researcher"]["processed_information"]
+                "analysis_results": self._safely_get_research_results(state)
             },
             description="Create a concise summary of the findings"
         )
+    
+    def _safely_get_research_results(self, state: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Safely extract research results from the state, handling cases where 
+        the researcher output might be a string instead of a dictionary.
+        
+        Args:
+            state: Current workflow state
+            
+        Returns:
+            Research results dictionary
+        """
+        researcher_data = state.get("researcher")
+        
+        # If researcher data is missing
+        if researcher_data is None:
+            logger.error("Researcher data is missing from workflow state")
+            return {"error": "Missing researcher data"}
+            
+        # If researcher data is a dictionary (normal case)
+        if isinstance(researcher_data, dict):
+            return researcher_data.get("processed_information", {"error": "No processed information in output"})
+            
+        # If researcher data is a string (serialized JSON)
+        if isinstance(researcher_data, str):
+            try:
+                parsed_data = json.loads(researcher_data)
+                if isinstance(parsed_data, dict):
+                    return parsed_data.get("processed_information", {"error": "No processed information in parsed output"})
+                else:
+                    logger.error(f"Parsed researcher data is not a dictionary: {type(parsed_data)}")
+                    return {"error": "Invalid researcher data format after parsing"}
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse researcher data as JSON: {e}")
+                return {"error": "Failed to parse researcher output"}
+        
+        # If researcher data is some other type
+        logger.error(f"Unexpected researcher data type: {type(researcher_data)}")
+        return {"error": f"Unexpected researcher data type: {type(researcher_data)}"}
 
 class WorkflowManager:
     """
@@ -552,17 +693,7 @@ class WorkflowManager:
         workflow = self.workflows[workflow_id]
         
         try:
-            # Attempt to use async_execute if available
-            if hasattr(workflow, 'async_execute'):
-                result = await workflow.async_execute(input_data)
-            else:
-                # Fallback to running synchronous execute in a thread pool
-                loop = asyncio.get_event_loop()
-                result = await loop.run_in_executor(
-                    None, 
-                    workflow.execute, 
-                    input_data
-                )
+            result = await workflow.execute(input_data)
             
             # Ensure result is serializable
             try:
