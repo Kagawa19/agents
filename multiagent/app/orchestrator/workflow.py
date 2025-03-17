@@ -8,7 +8,7 @@ import time
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional
 
-from multiagent.app.db.crud.results import crud_result
+from multiagent.app.db.results import crud_result
 from multiagent.app.db.session import SessionLocal
 from multiagent.app.monitoring.tracer import LangfuseTracer
 from multiagent.app.orchestrator.manager import AgentManager
@@ -62,7 +62,10 @@ class Workflow:
         Returns:
             The final result of the workflow
         """
-        with self.tracer.trace(f"workflow_{self.name}"):
+        # Create a span for the workflow execution
+        span = self.tracer.span(name=f"workflow_{self.name}")
+        
+        try:
             logger.info(f"Executing workflow: {self.name}")
             
             # Get the task ID
@@ -128,88 +131,96 @@ class Workflow:
                 
                 # Execute agent
                 step_start_time = time.time()
-                with self.tracer.span(f"step_{i}_{agent_id}"):
-                    try:
-                        # Execute the agent
-                        agent_output = self.agent_manager.execute_agent(agent_id, agent_input)
-                        
-                        # Calculate execution time
-                        step_execution_time = time.time() - step_start_time
-                        
-                        # Save agent execution details to database
-                        with SessionLocal() as db:
-                            crud_result.save_agent_execution(
-                                db=db,
-                                result_id=result_id,
-                                agent_id=agent_id,
-                                input_data=agent_input,
-                                output_data=agent_output,
-                                status="completed",
-                                execution_time=step_execution_time
-                            )
-                        
-                        # Record step details
-                        step_data = {
-                            "step": i + 1,
-                            "agent_id": agent_id,
-                            "description": description,
-                            "execution_time": step_execution_time,
-                            "status": "completed"
-                        }
-                        result_data["steps"].append(step_data)
-                        
-                        # Update state with agent output
-                        state[agent_id] = agent_output
-                        
-                        logger.info(f"Step {i+1}/{total_steps} completed (execution time: {step_execution_time:.2f}s)")
+                step_span = self.tracer.span(name=f"step_{i}_{agent_id}")
+                
+                try:
+                    # Execute the agent
+                    agent_output = self.agent_manager.execute_agent(agent_id, agent_input)
                     
-                    except Exception as e:
-                        logger.error(f"Error executing step {i+1}/{total_steps}: {str(e)}")
-                        
-                        # Calculate execution time even in case of error
-                        step_execution_time = time.time() - step_start_time
-                        
-                        # Save failed execution to database
-                        with SessionLocal() as db:
-                            crud_result.save_agent_execution(
-                                db=db,
-                                result_id=result_id,
-                                agent_id=agent_id,
-                                input_data=agent_input,
-                                error=str(e),
-                                status="failed",
-                                execution_time=step_execution_time
-                            )
-                        
-                        # Record failed step
-                        step_data = {
-                            "step": i + 1,
-                            "agent_id": agent_id,
-                            "description": description,
-                            "execution_time": step_execution_time,
-                            "status": "failed",
-                            "error": str(e)
-                        }
-                        result_data["steps"].append(step_data)
-                        
-                        # Update workflow result with error
-                        result_data["error"] = str(e)
-                        result_data["status"] = "failed"
-                        
-                        # Save result to database
-                        with SessionLocal() as db:
-                            crud_result.save_result(
-                                db=db,
-                                task_id=task_id or f"direct-{int(time.time())}",
-                                query=initial_input.get("query", ""),
-                                workflow=self.name,
-                                result=result_data,
-                                user_id=initial_input.get("user_id"),
-                                status="failed"
-                            )
-                        
-                        # Re-raise the exception
-                        raise
+                    # Calculate execution time
+                    step_execution_time = time.time() - step_start_time
+                    
+                    # Save agent execution details to database
+                    with SessionLocal() as db:
+                        crud_result.save_agent_execution(
+                            db=db,
+                            result_id=result_id,
+                            agent_id=agent_id,
+                            input_data=agent_input,
+                            output_data=agent_output,
+                            status="completed",
+                            execution_time=step_execution_time
+                        )
+                    
+                    # Record step details
+                    step_data = {
+                        "step": i + 1,
+                        "agent_id": agent_id,
+                        "description": description,
+                        "execution_time": step_execution_time,
+                        "status": "completed"
+                    }
+                    result_data["steps"].append(step_data)
+                    
+                    # Update state with agent output
+                    state[agent_id] = agent_output
+                    
+                    # Update step span with success
+                    step_span.update(output={"status": "completed", "execution_time": step_execution_time})
+                    
+                    logger.info(f"Step {i+1}/{total_steps} completed (execution time: {step_execution_time:.2f}s)")
+                
+                except Exception as e:
+                    logger.error(f"Error executing step {i+1}/{total_steps}: {str(e)}")
+                    
+                    # Calculate execution time even in case of error
+                    step_execution_time = time.time() - step_start_time
+                    
+                    # Update step span with error
+                    step_span.update(output={"status": "failed", "error": str(e), "execution_time": step_execution_time})
+                    
+                    # Save failed execution to database
+                    with SessionLocal() as db:
+                        crud_result.save_agent_execution(
+                            db=db,
+                            result_id=result_id,
+                            agent_id=agent_id,
+                            input_data=agent_input,
+                            error=str(e),
+                            status="failed",
+                            execution_time=step_execution_time
+                        )
+                    
+                    # Record failed step
+                    step_data = {
+                        "step": i + 1,
+                        "agent_id": agent_id,
+                        "description": description,
+                        "execution_time": step_execution_time,
+                        "status": "failed",
+                        "error": str(e)
+                    }
+                    result_data["steps"].append(step_data)
+                    
+                    # Update workflow result with error
+                    result_data["error"] = str(e)
+                    result_data["status"] = "failed"
+                    
+                    # Save result to database
+                    with SessionLocal() as db:
+                        crud_result.save_result(
+                            db=db,
+                            task_id=task_id or f"direct-{int(time.time())}",
+                            query=initial_input.get("query", ""),
+                            workflow=self.name,
+                            result=result_data,
+                            user_id=initial_input.get("user_id"),
+                            status="failed"
+                        )
+                    
+                    # Update workflow span with error and re-raise the exception
+                    span.update(output={"status": "failed", "error": str(e)})
+                    raise
             
             # Calculate total processing time
             total_execution_time = time.time() - start_time
@@ -249,8 +260,17 @@ class Workflow:
                     status="completed"
                 )
             
+            # Update workflow span with success
+            span.update(output={"status": "completed", "processing_time": total_execution_time})
+            
             logger.info(f"Workflow {self.name} execution completed (total time: {total_execution_time:.2f}s)")
             return result_data
+            
+        except Exception as e:
+            # Update workflow span with error
+            span.update(output={"status": "failed", "error": str(e)})
+            # Re-raise the exception
+            raise
     
     def _update_progress(self, task_id: str, current_step: str, progress: float) -> None:
         """

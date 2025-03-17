@@ -1,204 +1,213 @@
 """
-Celery configuration for asynchronous task processing.
-Sets up the Celery app and its configuration with robust networking and connection handling.
+Comprehensive Celery Application Configuration
+
+This module sets up a robust Celery application with advanced configuration,
+logging, and task management for a multi-agent system.
 """
 
 import logging
 import os
 import socket
-from typing import Optional
+from typing import Optional, Dict, Any
+
 from celery import Celery
+from celery.signals import (
+    task_postrun, 
+    task_prerun, 
+    worker_init, 
+    worker_ready, 
+    celeryd_after_setup
+)
 from kombu import Queue, Exchange
-from celery.signals import task_postrun, task_prerun, worker_init, worker_ready, celeryd_after_setup
-from datetime import datetime
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 logger = logging.getLogger(__name__)
 
-# Import settings after logging setup
-try:
-    from multiagent.app.core.config import settings
-    logger.info("Settings imported successfully")
-except ImportError:
-    logger.error("Failed to import settings, using environment variables")
-    # Fallback to environment variables
-    from os import environ
-    
-    class Settings:
-        REDIS_URI = environ.get('REDIS_URI', 'redis://redis:6379/0')
-        RABBITMQ_URI = environ.get('RABBITMQ_URI', 'amqp://guest:guest@rabbitmq:5672//')
-    
-    settings = Settings()
-
-def get_broker_url():
+def get_broker_url() -> str:
     """
-    Get the broker URL with fallbacks
+    Retrieve the broker URL with intelligent fallback and logging.
+    
+    Returns:
+        str: Configured broker URL
     """
-    # Try to get from settings first
-    broker_url = getattr(settings, 'REDIS_URI', None)
+    # Prioritize environment variables and provide multiple fallback options
+    broker_urls = [
+        os.environ.get('BROKER_URI'),
+        os.environ.get('REDIS_URI', 'redis://localhost:6379/0'),
+        os.environ.get('RABBITMQ_URI', 'amqp://guest:guest@localhost:5672//'),
+    ]
     
-    # If not found in settings, try environment
-    if not broker_url:
-        broker_url = os.environ.get('REDIS_URI', 'redis://redis:6379/0')
+    # Filter out None values and take the first valid URL
+    valid_urls = [url for url in broker_urls if url]
     
-    # Handle comma-separated URLs by taking only the first one
-    if broker_url and ',' in broker_url:
+    if not valid_urls:
+        raise ValueError("No valid broker URL found. Please configure BROKER_URI or REDIS_URI.")
+    
+    # Take the first valid URL
+    broker_url = valid_urls[0]
+    
+    # Handle comma-separated URLs by taking the first
+    if ',' in broker_url:
         broker_url = broker_url.split(',')[0]
-        logger.info(f"Found comma-separated URLs, using only the first: {broker_url}")
     
     logger.info(f"Using broker URL: {broker_url}")
     return broker_url
 
-def get_backend_url():
+def get_backend_url() -> str:
     """
-    Get the result backend URL with fallbacks
+    Retrieve the result backend URL with intelligent fallback.
+    
+    Returns:
+        str: Configured backend URL
     """
-    # Try to get from settings first
-    backend_url = getattr(settings, 'REDIS_URI', None)
+    # Similar logic to get_broker_url
+    backend_urls = [
+        os.environ.get('BACKEND_URI'),
+        os.environ.get('REDIS_URI', 'redis://localhost:6379/0'),
+    ]
     
-    # If not found in settings, try environment
-    if not backend_url:
-        backend_url = os.environ.get('REDIS_URI', 'redis://redis:6379/0')
+    valid_urls = [url for url in backend_urls if url]
     
-    # Handle comma-separated URLs by taking only the first one
-    if backend_url and ',' in backend_url:
+    if not valid_urls:
+        raise ValueError("No valid backend URL found. Please configure BACKEND_URI or REDIS_URI.")
+    
+    backend_url = valid_urls[0]
+    
+    # Handle comma-separated URLs
+    if ',' in backend_url:
         backend_url = backend_url.split(',')[0]
-        logger.info(f"Found comma-separated URLs, using only the first: {backend_url}")
     
-    logger.info(f"Using result backend URL: {backend_url}")
+    logger.info(f"Using backend URL: {backend_url}")
     return backend_url
 
-# Create Celery app
-celery_app = Celery('multiagent_llm')
-
-# Define exchanges
+# Define exchanges for task routing
 workflows_exchange = Exchange('workflows', type='direct')
 agents_exchange = Exchange('agents', type='direct')
 updates_exchange = Exchange('updates', type='direct')
 
-# Configuration based on best practices from Celery documentation
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html
-celery_app.conf.update(
-    # Connection settings with robust retry policy
-    broker_url=get_broker_url(),
-    result_backend=get_backend_url(),
-    
-    # Redis visibility timeout (in seconds)
-    broker_transport_options={
-        'visibility_timeout': 3600,  # 1 hour
-        'socket_timeout': 30,        # 30 seconds
-        'socket_connect_timeout': 30,  # 30 seconds
-        'max_retries': 10,            # Max retries for connection
-    },
-    
-    # Serialization
-    task_serializer='json',
-    result_serializer='json',
-    accept_content=['json'],
-    
-    # Time and tracking
-    task_track_started=True,
-    task_time_limit=3600,  # 1 hour maximum runtime
-    task_soft_time_limit=3500,  # 58.3 minutes soft limit (warning)
-    
-    # Retry settings
-    broker_connection_retry=True,
-    broker_connection_retry_on_startup=True,
-    broker_connection_max_retries=10,
-    broker_connection_timeout=30,
-    
-    # Result handling
-    result_expires=86400,  # Results expire after 1 day
-    result_persistent=True,  # Store results reliably
-    
-    # Worker settings
-    worker_concurrency=4,  # Number of concurrent tasks
-    worker_prefetch_multiplier=1,  # One task per worker at a time
-    worker_max_tasks_per_child=200,  # Restart worker after 200 tasks
-    
-    # Task routing
-    task_routes={
-        'multiagent.app.worker.tasks.execute_workflow_task': {'queue': 'workflows'},
-        'multiagent.app.worker.tasks.execute_agent_task': {'queue': 'agents'},
-        'multiagent.app.worker.tasks.update_progress': {'queue': 'updates'},
-    },
-    
-    # Queues
-    task_queues=(
-        Queue('workflows', exchange=workflows_exchange, routing_key='workflows'),
-        Queue('agents', exchange=agents_exchange, routing_key='agents'),
-        Queue('updates', exchange=updates_exchange, routing_key='updates'),
-    ),
-    
-    # Default queue
-    task_default_queue='workflows',
-)
-
-def test_redis_connection():
+# Create Celery application
+def create_celery_app() -> Celery:
     """
-    Test Redis connection with improved error handling
-    """
-    from redis import Redis
-    from redis.exceptions import ConnectionError, TimeoutError
+    Create and configure Celery application with comprehensive settings.
     
-    try:
-        redis_url = get_broker_url()
-        logger.info(f"Testing Redis connection to {redis_url}")
+    Returns:
+        Celery: Configured Celery application
+    """
+    # Create Celery app
+    celery_app = Celery('multiagent_llm')
+    
+    # Configuration dictionary
+    celery_app.conf.update(
+        # Connection settings
+        broker_url=get_broker_url(),
+        result_backend=get_backend_url(),
         
-        # Extract host and port from Redis URL
-        # redis://hostname:port/db
-        parts = redis_url.split('://')[-1].split(':')
-        host = parts[0]
-        port = int(parts[1].split('/')[0])
+        # Broker transport options
+        broker_transport_options={
+            'visibility_timeout': 3600,  # 1 hour
+            'socket_timeout': 30,        # 30 seconds
+            'socket_connect_timeout': 30,  # 30 seconds
+            'max_retries': 10,            # Max retries for connection
+        },
         
-        # Try to connect directly
-        client = Redis(host=host, port=port, socket_timeout=5, socket_connect_timeout=5)
-        response = client.ping()
+        # Serialization
+        task_serializer='json',
+        result_serializer='json',
+        accept_content=['json'],
         
-        if response:
-            logger.info(f"Successfully connected to Redis at {host}:{port}")
-            return True
-        else:
-            logger.error(f"Redis connection test failed: Ping returned {response}")
-            return False
-            
-    except (ConnectionError, TimeoutError) as e:
-        logger.error(f"Redis connection error: {e}")
-        return False
-    except Exception as e:
-        logger.error(f"Unexpected error testing Redis connection: {str(e)}")
-        return False
+        # Time and tracking
+        task_track_started=True,
+        task_time_limit=3600,  # 1 hour maximum runtime
+        task_soft_time_limit=3500,  # 58.3 minutes soft limit
+        
+        # Retry settings
+        broker_connection_retry=True,
+        broker_connection_retry_on_startup=True,
+        broker_connection_max_retries=10,
+        broker_connection_timeout=30,
+        
+        # Result handling
+        result_expires=86400,  # Results expire after 1 day
+        result_persistent=True,  # Store results reliably
+        
+        # Worker settings
+        worker_concurrency=4,  # Number of concurrent tasks
+        worker_prefetch_multiplier=1,  # One task per worker at a time
+        worker_max_tasks_per_child=200,  # Restart worker after 200 tasks
+        
+        # Timezone
+        enable_utc=True,
+        timezone='UTC',
+        
+        # Task routing
+        task_routes={
+            'multiagent.app.worker.tasks.execute_workflow_task': {'queue': 'workflows'},
+            'multiagent.app.worker.tasks.execute_agent_task': {'queue': 'agents'},
+            'multiagent.app.worker.tasks.update_progress': {'queue': 'updates'},
+        },
+        
+        # Queues
+        task_queues=(
+            Queue('workflows', workflows_exchange, routing_key='workflows'),
+            Queue('agents', agents_exchange, routing_key='agents'),
+            Queue('updates', updates_exchange, routing_key='updates'),
+        ),
+        
+        # Default queue
+        task_default_queue='workflows',
+        task_default_exchange='workflows',
+        task_default_routing_key='workflows',
+        
+        # Logging
+        worker_log_format='[%(asctime)s: %(levelname)s/%(processName)s] %(message)s',
+        worker_task_log_format='[%(asctime)s: %(levelname)s/%(processName)s][%(task_name)s(%(task_id)s)] %(message)s',
+    )
+    
+    # Autodiscover tasks
+    celery_app.autodiscover_tasks(
+        packages=['multiagent.app.worker'], 
+        related_name='tasks'
+    )
+    
+    return celery_app
 
+# Create the Celery app instance
+celery_app = create_celery_app()
+
+# Celery signal handlers
 @celeryd_after_setup.connect
 def configure_worker(sender, instance, **kwargs):
     """
-    Additional worker configuration after setup
+    Additional worker configuration after setup.
+    
+    Args:
+        sender: Worker sender
+        instance: Worker instance
+        kwargs: Additional keyword arguments
     """
     logger.info(f"Worker {sender} ready. Configuring additional settings...")
 
 @worker_init.connect
 def init_worker(**kwargs):
     """
-    Initialize worker with connection checks
+    Initialize worker with connection checks and additional setup.
+    
+    Args:
+        kwargs: Additional keyword arguments
     """
     logger.info("Initializing Celery worker")
     
-    # Log connection info
+    # Log connection and system info
     logger.info(f"Broker URL: {celery_app.conf.broker_url}")
     logger.info(f"Result backend: {celery_app.conf.result_backend}")
-    
-    # Log hostname
     logger.info(f"Hostname: {socket.gethostname()}")
     
-    # Test Redis connection
-    test_redis_connection()
-    
-    # Initialize database connection if needed
+    # Additional initialization can be added here
     try:
         from multiagent.app.db.session import init_db
         init_db()
@@ -209,23 +218,57 @@ def init_worker(**kwargs):
 @worker_ready.connect
 def worker_ready(**kwargs):
     """
-    Logs when the worker is ready to accept tasks
+    Log when the worker is ready to accept tasks.
+    
+    Args:
+        kwargs: Additional keyword arguments
     """
     logger.info("Celery worker is ready to accept tasks")
 
 @task_prerun.connect
 def task_prerun_handler(task_id, task, *args, **kwargs):
     """
-    Pre-task execution hook
+    Pre-task execution hook.
+    
+    Args:
+        task_id: Unique task identifier
+        task: Task instance
+        args: Positional arguments
+        kwargs: Keyword arguments
     """
     logger.info(f"Starting task: {task.name} (ID: {task_id})")
 
 @task_postrun.connect
 def task_postrun_handler(task_id, task, retval, state, *args, **kwargs):
     """
-    Post-task execution hook
+    Post-task execution hook.
+    
+    Args:
+        task_id: Unique task identifier
+        task: Task instance
+        retval: Return value
+        state: Task state
+        args: Positional arguments
+        kwargs: Keyword arguments
     """
     logger.info(f"Task completed: {task.name} (ID: {task_id}, State: {state})")
 
+# Health check function (optional)
+def test_celery_connection() -> bool:
+    """
+    Test Celery broker connection.
+    
+    Returns:
+        bool: True if connection is successful, False otherwise
+    """
+    try:
+        # Ping the broker
+        celery_app.control.ping(timeout=5)
+        logger.info("Celery broker connection successful")
+        return True
+    except Exception as e:
+        logger.error(f"Celery broker connection failed: {e}")
+        return False
+
 # Ensure the app is imported
-__all__ = ['celery_app']
+__all__ = ['celery_app', 'test_celery_connection']
