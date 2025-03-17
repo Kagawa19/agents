@@ -6,23 +6,37 @@ WORKDIR /app
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app
+    PYTHONPATH=/app \
+    C_FORCE_ROOT=true
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        build-essential \
-        libpq-dev \
-        curl \
+    build-essential \
+    libpq-dev \
+    curl \
+    iputils-ping \
+    net-tools \
+    dnsutils \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Copy requirements
 COPY requirements.txt .
+
+# Install Python dependencies
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir "docarray==0.21.0" && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir flower
+
+# Create a health check file
+RUN echo "#!/bin/sh\npython -c 'import socket; socket.socket().connect((\"redis\", 6379))'" > /app/healthcheck.sh \
+    && chmod +x /app/healthcheck.sh
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD /app/healthcheck.sh
 
 # Copy project
 COPY . .
 
 # Command to run the Celery worker
-CMD ["celery", "-A", "app.worker.celery_app", "worker", "--loglevel=info"]
+CMD ["celery", "-A", "multiagent.app.worker.celery_app", "worker", "--loglevel=info"]

@@ -11,7 +11,7 @@ from celery import states
 from celery.exceptions import MaxRetriesExceededError, Retry
 
 from multiagent.app.api.websocket import connection_manager
-from multiagent.app.db.crud.results import crud_result
+from multiagent.app.db.results import crud_result
 from multiagent.app.db.session import SessionLocal
 from multiagent.app.worker.celery_app import celery_app
 
@@ -19,7 +19,6 @@ from multiagent.app.worker.celery_app import celery_app
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(bind=True, name="app.worker.tasks.execute_workflow_task")
 @celery_app.task(bind=True, name="app.worker.tasks.execute_workflow_task")
 def execute_workflow_task(
     self,
@@ -31,30 +30,39 @@ def execute_workflow_task(
     
     Args:
         workflow_id: ID of the workflow to execute
-        input_data: Input data for the workflow
+        input_data: Input data for the workflow, including:
+            - task_id: ID of the task
+            - query: User query
+            - user_id: ID of the user
+            - parameters: Additional parameters for the workflow
+            - trace_id: ID of the trace for monitoring
     
     Returns:
         The workflow result
     """
-    # Store the task ID in the input data
-    input_data["task_id"] = self.request.id
+    # Extract input data
+    task_id = input_data.get("task_id")
+    query = input_data.get("query")
+    user_id = input_data.get("user_id")
+    parameters = input_data.get("parameters", {})
+    trace_id = input_data.get("trace_id")
     
-    logger.info(f"Executing workflow {workflow_id} (Task ID: {self.request.id})")
+    logger.info(f"Executing workflow {workflow_id} (Task ID: {task_id})")
     
     # Save task to database
     with SessionLocal() as db:
         crud_result.save_result(
             db=db,
-            task_id=self.request.id,
-            query=input_data.get("query", ""),
+            task_id=task_id,
+            query=query,
             workflow=workflow_id,
-            user_id=input_data.get("user_id"),
+            user_id=user_id,
             status="processing"
         )
     
     # Send initial progress update
     update_progress.delay(
-        task_id=self.request.id,
+        task_id=task_id,
         status="processing",
         progress=10,
         current_step="Initializing workflow execution"
@@ -71,7 +79,7 @@ def execute_workflow_task(
             
             # Send progress update
             update_progress.delay(
-                task_id=self.request.id,
+                task_id=task_id,
                 status="processing",
                 progress=20,
                 current_step="Setting up execution environment"
@@ -83,8 +91,8 @@ def execute_workflow_task(
             
             # Send progress update
             update_progress.delay(
-                task_id=self.request.id,
-                status="processing",
+                task_id=task_id,
+                status="processing", 
                 progress=30,
                 current_step="Initializing agent manager"
             )
@@ -93,7 +101,7 @@ def execute_workflow_task(
             
             # Send progress update
             update_progress.delay(
-                task_id=self.request.id,
+                task_id=task_id,
                 status="processing",
                 progress=40,
                 current_step="Environment setup complete"
@@ -106,7 +114,7 @@ def execute_workflow_task(
             
             # Send specific error progress update
             update_progress.delay(
-                task_id=self.request.id,
+                task_id=task_id,
                 status="failed",
                 progress=0,
                 error=error_msg
@@ -116,11 +124,11 @@ def execute_workflow_task(
             with SessionLocal() as db:
                 crud_result.save_result(
                     db=db,
-                    task_id=self.request.id,
-                    query=input_data.get("query", ""),
+                    task_id=task_id,
+                    query=query,
                     workflow=workflow_id,
                     result={"error": error_msg},
-                    user_id=input_data.get("user_id"),
+                    user_id=user_id,
                     status="failed"
                 )
             
@@ -132,7 +140,7 @@ def execute_workflow_task(
         
         # Send progress update before execution
         update_progress.delay(
-            task_id=self.request.id,
+            task_id=task_id,
             status="processing",
             progress=50,
             current_step="Starting workflow execution"
@@ -143,21 +151,21 @@ def execute_workflow_task(
         
         # Send progress update after execution
         update_progress.delay(
-            task_id=self.request.id,
+            task_id=task_id,
             status="processing",
             progress=90,
             current_step="Workflow execution completed, finalizing results"
         )
         
-        # Save result to database
+        # Save result to database  
         with SessionLocal() as db:
             crud_result.save_result(
                 db=db,
-                task_id=self.request.id,
-                query=input_data.get("query", ""),
+                task_id=task_id,
+                query=query,
                 workflow=workflow_id,
                 result=result,
-                user_id=input_data.get("user_id"),
+                user_id=user_id,
                 status="completed"
             )
         
@@ -166,13 +174,13 @@ def execute_workflow_task(
         
         # Send completion notification
         update_progress.delay(
-            task_id=self.request.id,
+            task_id=task_id,
             status="completed",
             progress=100,
             result=result
         )
         
-        logger.info(f"Workflow {workflow_id} completed successfully (Task ID: {self.request.id})")
+        logger.info(f"Workflow {workflow_id} completed successfully (Task ID: {task_id})")
         return result
     
     except Exception as e:
@@ -184,29 +192,29 @@ def execute_workflow_task(
         error_details = {
             "error": error_msg,
             "workflow_id": workflow_id,
-            "task_id": self.request.id,
+            "task_id": task_id,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()),
-            "trace": stack_trace if settings.DEBUG else "Enable DEBUG mode to see trace"
+            "trace": stack_trace if settings.DEBUG else "Enable DEBUG mode to see trace" 
         }
         
         # Save error to database
         with SessionLocal() as db:
             crud_result.save_result(
                 db=db,
-                task_id=self.request.id,
-                query=input_data.get("query", ""),
-                workflow=workflow_id,
+                task_id=task_id,
+                query=query,
+                workflow=workflow_id, 
                 result=error_details,
-                user_id=input_data.get("user_id"),
+                user_id=user_id,
                 status="failed"
             )
         
-        # Send error notification
+        # Send error notification  
         update_progress.delay(
-            task_id=self.request.id,
+            task_id=task_id,
             status="failed",
             progress=0,
-            error=error_msg
+            error=error_msg  
         )
         
         # Re-raise the exception with structured error

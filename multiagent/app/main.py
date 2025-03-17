@@ -14,13 +14,13 @@ from multiagent.app.api.websocket import websocket_endpoint
 from multiagent.app.api.response import StandardResponse
 
 # Import database components
-from database.session import engine, Base, get_db
-from database.models import Result, AgentExecution, ProviderConfig, ProviderCapabilities, ProviderPerformance
+from multiagent.app.db.session import engine, Base, get_db
+from multiagent.app.db.models import Result, AgentExecution, ProviderConfig, ProviderCapabilities, ProviderPerformance
 from sqlalchemy.orm import Session
 
 # Import monitoring components
-from monitoring.metrics import PrometheusMiddleware
-from monitoring.logging import setup_logging
+from multiagent.app.monitoring.metrics import PrometheusMiddleware
+from multiagent.app.monitoring.logging import setup_logging
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -126,7 +126,7 @@ async def initialize_default_providers():
                     provider_id=provider.id,
                     capability_type=cap["capability_type"],
                     capability_value=cap["capability_value"],
-                    metadata={}
+                    additional_data={}  # Changed from metadata to additional_data
                 )
                 db.add(capability)
                 
@@ -277,7 +277,7 @@ async def get_providers(db: Session = Depends(get_db)):
             {
                 "type": cap.capability_type,
                 "value": cap.capability_value,
-                "metadata": cap.metadata
+                "metadata": cap.additional_data  # Changed from metadata to additional_data
             }
             for cap in capabilities
         ]
@@ -377,7 +377,7 @@ async def get_provider_performance(
             "tokens_input": record.tokens_input,
             "tokens_output": record.tokens_output,
             "recorded_at": record.recorded_at.isoformat(),
-            "metadata": record.metadata
+            "metadata": record.additional_data  # Changed from metadata to additional_data
         })
     
     return StandardResponse(

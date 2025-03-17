@@ -1,10 +1,187 @@
-version: '3.4'
-
+version: '3.8'
 services:
-  agents:
-    image: agents
+  api:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: multiagent-api
+    command: >
+      python -m debugpy --wait-for-client --listen 0.0.0.0:5678 
+      -m uvicorn multiagent.app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+      - "5678:5678"
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - DEBUG=True
+      - ENVIRONMENT=development
+      - SECRET_KEY=your-secret-key-for-jwt
+      - ACCESS_TOKEN_EXPIRE_MINUTES=60
+      - CORS_ORIGINS=["*"]
+      - DATABASE_URI=postgresql://postgres:postgres@db:5432/multiagent
+      - REDIS_URI=redis://redis:6379/0
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672//
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=gpt-4
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=us-east-1
+      - BEDROCK_MODEL=anthropic.claude-3-sonnet-20240229-v1:0
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - VECTOR_DB_PROVIDER=chroma
+      - VECTOR_DB_URI=localhost:8000
+      - JINA_API_KEY=${JINA_API_KEY}
+      - SERPER_API_KEY=${SERPER_API_KEY}
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_HOST=https://cloud.langfuse.com
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - PINECONE_ENVIRONMENT=testing
+      - PINECONE_HOST=https://testing-3l8yn9u.svc.aped-4627-b74a.pinecone.io
+      - PINECONE_REGION=us-east-1
+      - PINECONE_INDEX_NAME=testing
+      - VECTOR_DIMENSION=1024
+      - VECTOR_METRIC=cosine
+    networks:
+      - multiagent_network
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+
+  worker:
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: Dockerfile.worker
+    container_name: multiagent-worker
+    command: celery -A multiagent.app.worker.celery_app worker --loglevel=info
+    volumes:
+      - .:/app
+    networks:
+      - multiagent_network
+    environment:
+      - REDIS_URI=redis://redis:6379/0
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672//
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=gpt-4
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=us-east-1
+      - BEDROCK_MODEL=anthropic.claude-3-sonnet-20240229-v1:0
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - JINA_API_KEY=${JINA_API_KEY}
+      - SERPER_API_KEY=${SERPER_API_KEY}
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_HOST=https://cloud.langfuse.com
+    depends_on:
+      - redis
+      - rabbitmq
+
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    command: celery -A multiagent.app.worker.celery_app flower --port=5555
     ports:
-      - 8000:8000
+      - "5555:5555"
+    networks:
+      - multiagent_network
+    environment:
+      - REDIS_URI=redis://redis:6379/0
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672//
+    depends_on:
+      - worker
+      - redis
+      - rabbitmq
+
+  db:
+    image: postgres:14-alpine
+    container_name: multiagent-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - multiagent_network
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=multiagent
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - multiagent_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - multiagent_network
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  prometheus:
+    image: prom/prometheus
+    container_name: multiagent-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    networks:
+      - multiagent_network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+
+  grafana:
+    image: grafana/grafana
+    container_name: multiagent-grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - multiagent_network
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+
+networks:
+  multiagent_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  prometheus_data:
+  grafana_data:

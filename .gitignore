@@ -21,7 +21,6 @@ var/
 *.egg
 
 # Environment
-.env
 .venv
 venv/
 ENV/
@@ -48,13 +47,11 @@ docker/grafana/data/
 *.tfstate
 *.tfstate.*
 terraform.tfvars
-.env
 
+.env
 # Miscellaneous
 .DS_Store
 .coverage
 htmlcov/
 .pytest_cache/
-.env
-.env
-.env
+

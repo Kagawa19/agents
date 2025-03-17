@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
+
 build/
 develop-eggs/
 dist/
@@ -21,7 +21,6 @@ var/
 *.egg
 
 # Environment
-.env
 .venv
 venv/
 ENV/
@@ -48,11 +47,9 @@ docker/grafana/data/
 *.tfstate
 *.tfstate.*
 terraform.tfvars
-.env
 
 # Miscellaneous
 .DS_Store
 .coverage
 htmlcov/
 .pytest_cache/
-.env

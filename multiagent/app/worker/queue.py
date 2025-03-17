@@ -4,8 +4,10 @@ Provides a simplified interface for submitting tasks and checking their status.
 """
 
 import logging
+import sys
+import time
 from typing import Any, Dict, List, Optional, Union
-
+import uuid
 from celery.result import AsyncResult
 
 from multiagent.app.worker.celery_app import celery_app
@@ -13,175 +15,297 @@ from multiagent.app.worker.tasks import update_progress
 
 logger = logging.getLogger(__name__)
 
+# Configure more verbose logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
 
 class TaskQueue:
     """
     Interface for interacting with the Celery task queue.
     Provides methods for submitting tasks and checking their status.
     """
+    
+    def __init__(self):
+        """Initialize the task queue and verify connections."""
+        logger.info("TaskQueue: Initializing task queue interface")
+        
+        # Verify Celery app
+        if celery_app:
+            logger.info(f"TaskQueue: Celery app initialized with broker: {celery_app.conf.broker_url}")
+            logger.info(f"TaskQueue: Result backend: {celery_app.conf.result_backend}")
+        else:
+            logger.warning("TaskQueue: WARNING - Celery app not properly initialized")
+            
+        # Test connection on initialization
+        self._test_celery_connection()
 
-
-    def get_task_status(self, task_id: str) -> str:
+    def _test_celery_connection(self, max_retries=3, retry_delay=2):
         """
-        Get the status of a task.
+        Test the Celery connection to both broker and backend.
         
         Args:
-            task_id: ID of the task
-        
-        Returns:
-            Task status (PENDING, STARTED, SUCCESS, FAILURE, REVOKED)
+            max_retries: Maximum number of connection attempts
+            retry_delay: Delay between retries in seconds
         """
-        result = AsyncResult(task_id, app=celery_app)
-        status = result.state
+        from celery.exceptions import OperationalError
         
-        # Map Celery status to application status
-        status_mapping = {
-            "PENDING": "pending",
-            "STARTED": "processing",
-            "SUCCESS": "completed",
-            "FAILURE": "failed",
-            "REVOKED": "cancelled"
-        }
-        
-        app_status = status_mapping.get(status, "unknown")
-        
-        # Determine progress based on status
-        progress = 0
-        if status == "PENDING":
-            progress = 0
-        elif status == "STARTED":
-            progress = 50  # Approximate middle progress
-        elif status == "SUCCESS":
-            progress = 100
-        
-        # Update progress in the system
-        self.update_task_progress(
-            task_id=task_id,
-            status=app_status,
-            progress=progress
-        )
-        
-        return status
-    def get_task_result(self, task_id: str) -> Optional[Any]:
-        """
-        Get the result of a task.
-        
-        Args:
-            task_id: ID of the task
-        
-        Returns:
-            Task result or None if not ready
-        """
-        result = AsyncResult(task_id, app=celery_app)
-        
-        if result.ready():
+        for attempt in range(max_retries):
             try:
-                task_result = result.get()
-                
-                # Update progress to completed with result
-                if result.successful():
-                    self.update_task_progress(
-                        task_id=task_id,
-                        status="completed",
-                        progress=100,
-                        result=task_result
-                    )
-                else:
-                    self.update_task_progress(
-                        task_id=task_id,
-                        status="failed",
-                        progress=100,
-                        error="Task failed"
-                    )
-                    
-                return task_result
+                # Try to ping the broker
+                logger.info(f"TaskQueue: Testing Celery broker connection (attempt {attempt+1}/{max_retries})")
+                celery_app.control.ping(timeout=5)
+                logger.info("TaskQueue: Successfully connected to Celery broker")
+                return
+            except OperationalError as e:
+                logger.warning(f"TaskQueue: Failed to connect to Celery broker: {str(e)}")
             except Exception as e:
-                logger.error(f"Error retrieving task result: {str(e)}")
+                logger.warning(f"TaskQueue: Unexpected error connecting to Celery broker: {str(e)}")
+            
+            # Wait before retry
+            if attempt < max_retries - 1:
+                logger.info(f"TaskQueue: Waiting {retry_delay}s before next connection attempt")
+                time.sleep(retry_delay)
+        
+        logger.error(f"TaskQueue: Failed to connect to Celery broker after {max_retries} attempts")
+
+    async def submit_task(self, task_name: str, *args, **kwargs):
+        """
+        Submit a task to Celery with retry logic.
+        
+        Args:
+            task_name: Name of the Celery task
+            *args: Positional arguments for the task
+            **kwargs: Keyword arguments for the task
+            
+        Returns:
+            AsyncResult object or None if submission failed
+        """
+        from celery.exceptions import OperationalError
+        
+        max_retries = 3
+        retry_delay = 2
+        
+        for attempt in range(max_retries):
+            try:
+                logger.info(f"TaskQueue: Submitting task {task_name} (attempt {attempt+1}/{max_retries})")
                 
-                # Update progress with error
-                self.update_task_progress(
-                    task_id=task_id,
-                    status="failed",
-                    progress=100,
-                    error=str(e)
+                # Use send_task as recommended in Celery docs for reliable task submission
+                # https://docs.celeryq.dev/en/stable/reference/celery.app.task.html#celery.app.task.Task.send_task
+                task = celery_app.send_task(
+                    task_name,
+                    args=args,
+                    kwargs=kwargs,
+                    retry=True,
+                    retry_policy={
+                        'max_retries': 3,
+                        'interval_start': 0,
+                        'interval_step': 0.5,
+                        'interval_max': 3,
+                    }
                 )
                 
-                return None
+                logger.info(f"TaskQueue: Task {task_name} submitted successfully. Task ID: {task.id}")
+                return task
+                
+            except OperationalError as e:
+                logger.warning(f"TaskQueue: OperationalError submitting task {task_name}: {str(e)}")
+            except Exception as e:
+                logger.error(f"TaskQueue: Error submitting task {task_name}: {str(e)}")
+                logger.error(f"TaskQueue: Exception type: {type(e)}")
+            
+            # Wait before retry
+            if attempt < max_retries - 1:
+                logger.info(f"TaskQueue: Waiting {retry_delay}s before retry")
+                time.sleep(retry_delay)
         
-        return None
-    
-    def submit_task(
-        self,
-        task_name: str,
-        *args: Any,
-        task_id: Optional[str] = None,
-        priority: Optional[int] = None,
-        **kwargs: Any
-    ) -> str:
+        logger.error(f"TaskQueue: Failed to submit task {task_name} after {max_retries} attempts")
+        raise Exception(f"Failed to submit task {task_name} after {max_retries} attempts")
+
+    async def get_task_status(self, task_id: str) -> Dict[str, Any]:
         """
-        Submit a task to the queue.
+        Get the status of a task with proper error handling.
         
         Args:
-            task_name: Name of the task to execute
-            *args: Positional arguments for the task
-            task_id: Optional custom task ID (will be generated if not provided)
-            priority: Priority level (1-10, where 1 is highest priority)
-            **kwargs: Keyword arguments for the task
+            task_id: ID of the task
         
         Returns:
-            Task ID
+            Dictionary containing task status information
         """
+        logger.info(f"TaskQueue: Getting status for task {task_id}")
+        
         try:
-            # Generate a task ID if not provided
-            if task_id is None:
-                task_id = str(uuid.uuid4())
+            # Create AsyncResult with timeout handling
+            result = AsyncResult(task_id, app=celery_app)
             
-            # Determine queue based on priority
-            queue = None
-            task_options = {}
+            # Map Celery status to application status
+            status_mapping = {
+                "PENDING": "pending",
+                "STARTED": "processing",
+                "SUCCESS": "completed",
+                "FAILURE": "failed",
+                "REVOKED": "cancelled",
+                "RETRY": "retrying"
+            }
             
-            if priority is not None:
-                if priority <= 3:
-                    queue = "high_priority"
-                elif priority <= 7:
-                    queue = "medium_priority"
-                else:
-                    queue = "low_priority"
-                
-                # Add queue to options if specified
-                if queue:
-                    task_options["queue"] = queue
-                
-                # Convert input priority (1-10, where 1 is highest) to Celery format
-                celery_priority = min(max(10 - priority, 0), 9)
-                task_options["priority"] = celery_priority
+            celery_status = result.state
+            app_status = status_mapping.get(celery_status, "unknown")
             
-            # Submit task with custom task_id and priority options
-            task = celery_app.send_task(
-                task_name, 
-                args=args, 
-                kwargs=kwargs,
-                task_id=task_id,
-                **task_options
-            )
+            # Determine progress based on status
+            progress = 0
+            if celery_status == "PENDING":
+                progress = 0
+            elif celery_status == "STARTED":
+                progress = 50
+            elif celery_status == "SUCCESS":
+                progress = 100
+            elif celery_status == "RETRY":
+                progress = 25
             
-            logger.info(f"Submitted task {task_name} (ID: {task_id}, Priority: {priority})")
+            # Get additional info if available
+            info = {}
+            if hasattr(result, 'info') and result.info:
+                if isinstance(result.info, dict):
+                    info = result.info
             
-            # Update initial progress
-            self.update_task_progress(
-                task_id=task_id,
-                status="pending",
-                progress=0,
-                current_step="Task submitted to queue"
-            )
+            # Construct status response
+            status_data = {
+                "task_id": task_id,
+                "status": app_status,
+                "celery_status": celery_status,
+                "progress": progress,
+                "updated_at": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+            }
             
-            return task_id
+            # Add info if available
+            if info:
+                status_data.update(info)
+            
+            logger.info(f"TaskQueue: Status for task {task_id}: {app_status} ({progress}%)")
+            return status_data
             
         except Exception as e:
-            logger.error(f"Error submitting task {task_name}: {str(e)}")
-            raise
+            logger.error(f"TaskQueue: Error getting status for task {task_id}: {str(e)}")
+            return {
+                "task_id": task_id,
+                "status": "unknown",
+                "error": str(e),
+                "progress": 0,
+                "updated_at": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+            }
+
+    async def get_task_result(self, task_id: str) -> Dict[str, Any]:
+        """
+        Get the result of a task with proper error handling.
+        
+        Args:
+            task_id: ID of the task
+        
+        Returns:
+            Dictionary containing task result or error information
+        """
+        logger.info(f"TaskQueue: Getting result for task {task_id}")
+        
+        try:
+            result = AsyncResult(task_id, app=celery_app)
+            
+            # Check if task is ready
+            if not result.ready():
+                logger.info(f"TaskQueue: Task {task_id} is not ready yet")
+                status = await self.get_task_status(task_id)
+                return status
+            
+            # Task is ready - get the result or exception
+            if result.successful():
+                logger.info(f"TaskQueue: Task {task_id} completed successfully")
+                task_result = result.get()
+                
+                # Ensure result is a dictionary
+                if not isinstance(task_result, dict):
+                    task_result = {"value": task_result}
+                
+                return {
+                    "task_id": task_id,
+                    "status": "completed",
+                    "result": task_result,
+                    "progress": 100,
+                    "created_at": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+                }
+            else:
+                # Task failed
+                logger.warning(f"TaskQueue: Task {task_id} failed")
+                error = str(result.get(propagate=False))
+                
+                return {
+                    "task_id": task_id,
+                    "status": "failed",
+                    "error": error,
+                    "progress": 100,
+                    "created_at": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+                }
+                
+        except Exception as e:
+            logger.error(f"TaskQueue: Error getting result for task {task_id}: {str(e)}")
+            return {
+                "task_id": task_id,
+                "status": "error",
+                "error": str(e),
+                "progress": 0,
+                "created_at": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+            }
     
-    
+    def update_task_progress(
+        self,
+        task_id: str,
+        status: str,
+        progress: int,
+        current_step: Optional[str] = None,
+        result: Optional[Dict[str, Any]] = None,
+        error: Optional[str] = None
+    ) -> bool:
+        """
+        Update the progress of a task.
+        
+        Args:
+            task_id: ID of the task
+            status: Status of the task
+            progress: Progress percentage (0-100)
+            current_step: Current step being executed
+            result: Task result (if completed)
+            error: Error message (if failed)
+        
+        Returns:
+            True if the update was successful, False otherwise
+        """
+        try:
+            logger.info(f"TaskQueue: Updating progress for task {task_id}: {status} ({progress}%)")
+            
+            # Call the update_progress task with retry
+            update_progress.apply_async(
+                kwargs={
+                    "task_id": task_id,
+                    "status": status,
+                    "progress": progress,
+                    "current_step": current_step,
+                    "result": result,
+                    "error": error
+                },
+                retry=True,
+                retry_policy={
+                    'max_retries': 3,
+                    'interval_start': 0,
+                    'interval_step': 0.5,
+                    'interval_max': 3,
+                }
+            )
+            
+            logger.debug(f"TaskQueue: Successfully updated progress for task {task_id}")
+            return True
+        except Exception as e:
+            logger.error(f"TaskQueue: Error updating progress for task {task_id}: {str(e)}")
+            return False
     
     def cancel_task(self, task_id: str) -> bool:
         """
@@ -194,115 +318,13 @@ class TaskQueue:
             True if the task was successfully revoked, False otherwise
         """
         try:
+            logger.info(f"TaskQueue: Attempting to cancel task {task_id}")
+            
+            # Revoke the task and terminate it if it's running
             celery_app.control.revoke(task_id, terminate=True)
-            logger.info(f"Revoked task {task_id}")
+            
+            logger.info(f"TaskQueue: Successfully revoked task {task_id}")
             return True
         except Exception as e:
-            logger.error(f"Error revoking task {task_id}: {str(e)}")
+            logger.error(f"TaskQueue: Error revoking task {task_id}: {str(e)}")
             return False
-    
-    def get_active_tasks(self) -> List[Dict[str, Any]]:
-        """
-        Get a list of active tasks.
-        
-        Returns:
-            List of active tasks with their status
-        """
-        try:
-            # Get active tasks from all workers
-            inspect = celery_app.control.inspect()
-            active = inspect.active() or {}
-            scheduled = inspect.scheduled() or {}
-            reserved = inspect.reserved() or {}
-            
-            # Combine all tasks
-            all_tasks = []
-            
-            # Add active tasks
-            for worker, tasks in active.items():
-                for task in tasks:
-                    task_info = {
-                        "id": task["id"],
-                        "name": task["name"],
-                        "args": task["args"],
-                        "kwargs": task["kwargs"],
-                        "state": "ACTIVE",
-                        "worker": worker
-                    }
-                    all_tasks.append(task_info)
-            
-            # Add scheduled tasks
-            for worker, tasks in scheduled.items():
-                for task in tasks:
-                    task_info = {
-                        "id": task["request"]["id"],
-                        "name": task["request"]["name"],
-                        "args": task["request"]["args"],
-                        "kwargs": task["request"]["kwargs"],
-                        "state": "SCHEDULED",
-                        "worker": worker
-                    }
-                    all_tasks.append(task_info)
-            
-            # Add reserved tasks
-            for worker, tasks in reserved.items():
-                for task in tasks:
-                    task_info = {
-                        "id": task["id"],
-                        "name": task["name"],
-                        "args": task["args"],
-                        "kwargs": task["kwargs"],
-                        "state": "RESERVED",
-                        "worker": worker
-                    }
-                    all_tasks.append(task_info)
-            
-            return all_tasks
-        
-        except Exception as e:
-            logger.error(f"Error getting active tasks: {str(e)}")
-            return []
-    
-    def get_task_info(self, task_id: str) -> Dict[str, Any]:
-        """
-        Get detailed information about a task.
-        
-        Args:
-            task_id: ID of the task
-        
-        Returns:
-            Task information
-        """
-        result = AsyncResult(task_id, app=celery_app)
-        
-        task_info = {
-            "id": task_id,
-            "state": result.state,
-            "ready": result.ready()
-        }
-        
-        # Add result if ready
-        if result.ready():
-            try:
-                task_info["result"] = result.get()
-            except Exception as e:
-                task_info["error"] = str(e)
-        
-        # Add info if running
-        if result.state == "STARTED":
-            task_info["info"] = result.info
-        
-        return task_info
-    
-    def purge_queue(self) -> int:
-        """
-        Purge all pending tasks from the queue.
-        
-        Returns:
-            Number of tasks purged
-        """
-        try:
-            return celery_app.control.purge()
-        except Exception as e:
-            logger.error(f"Error purging task queue: {str(e)}")
-            return 0

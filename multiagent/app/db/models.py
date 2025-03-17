@@ -13,6 +13,65 @@ from sqlalchemy.orm import relationship
 
 from multiagent.app.db.session import Base
 
+class ProviderConfig(Base):
+    """
+    Model for storing provider configuration.
+    Contains settings and configuration for LLM providers.
+    """
+    __tablename__ = "provider_configs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    provider_id = Column(String(255), unique=True, index=True, nullable=False)
+    config = Column(JSON, nullable=False, default={})  # Configuration data
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+class ProviderCapabilities(Base):
+    """
+    Model for storing provider capabilities.
+    Records what each provider is capable of and how well.
+    """
+    __tablename__ = "provider_capabilities"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    provider_id = Column(Integer, ForeignKey("provider_configs.id"), nullable=False)
+    capability_type = Column(String(255), nullable=False)
+    capability_value = Column(Float, nullable=False, default=0.0)  # Score between 0-1
+    additional_data = Column(JSON, nullable=False, default={})  # Additional capability metadata
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    # Create composite index
+    __table_args__ = (
+        Index("ix_provider_capabilities_provider_id_type", "provider_id", "capability_type"),
+    )
+
+class ProviderPerformance(Base):
+    """
+    Model for tracking provider performance metrics.
+    Records performance data for each provider.
+    """
+    __tablename__ = "provider_performances"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    provider_id = Column(Integer, ForeignKey("provider_configs.id"), nullable=False)
+    model_id = Column(String(255), nullable=True)  # Specific model ID if applicable
+    task_type = Column(String(255), nullable=False, index=True)
+    latency = Column(Float, nullable=False)  # Latency in seconds
+    success_rate = Column(Float, nullable=False, default=1.0)  # Success rate (0-1)
+    cost = Column(Float, nullable=True)  # Cost in dollars if available
+    quality_score = Column(Float, nullable=True)  # Quality score if available (0-1)
+    tokens_input = Column(Integer, nullable=True)  # Number of input tokens
+    tokens_output = Column(Integer, nullable=True)  # Number of output tokens
+    recorded_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    additional_data = Column(JSON, nullable=False, default={})  # Additional performance metadata
+    
+    # Indexes for common queries
+    __table_args__ = (
+        Index("ix_provider_performances_provider_task", "provider_id", "task_type"),
+        Index("ix_provider_performances_recorded_at", "recorded_at"),
+    )
 
 class Result(Base):
     """
@@ -39,7 +98,6 @@ class Result(Base):
     # Relationships
     executions = relationship("AgentExecution", back_populates="result")
 
-
 class AgentExecution(Base):
     """
     Model for storing agent execution details.
@@ -60,7 +118,6 @@ class AgentExecution(Base):
     
     # Relationships
     result = relationship("Result", back_populates="executions")
-
 
 class APIRequest(Base):
     """
@@ -84,7 +141,6 @@ class APIRequest(Base):
         Index("ix_api_requests_created_at", "created_at"),
     )
 
-
 class AgentMetrics(Base):
     """
     Model for storing agent performance metrics.
@@ -102,7 +158,6 @@ class AgentMetrics(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
-
 class User(Base):
     """
     Model for user data.
@@ -118,7 +173,6 @@ class User(Base):
     is_superuser = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-
 
 class APIKey(Base):
     """

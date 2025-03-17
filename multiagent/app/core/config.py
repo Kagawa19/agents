@@ -5,8 +5,6 @@ from pydantic import AnyHttpUrl, Field, validator
 from pydantic_settings import BaseSettings
 
 
-
-
 class Settings(BaseSettings):
     """
     Application settings loaded from environment variables.
@@ -18,7 +16,6 @@ class Settings(BaseSettings):
             return v.lower() in ('true', '1', 'yes', 'on')
         return bool(v)
 
-    # Rest of the class remains the same...
     # API Configuration
     API_HOST: str = Field("0.0.0.0", env="API_HOST")
     API_PORT: int = Field(8000, env="API_PORT")
@@ -64,15 +61,15 @@ class Settings(BaseSettings):
         return ["*"]
     
     # Database Configuration
-    DATABASE_URI: Optional[str] = Field(None, env="DATABASE_URI")
+    DATABASE_URI: str = Field("sqlite:///./multiagent.db", env="DATABASE_URI")
     DATABASE_ECHO: bool = Field(False, env="DATABASE_ECHO")
     
     # Redis Configuration
-    REDIS_URI: Optional[str] = Field(None, env="REDIS_URI")
-    
+    # Redis Configuration
+    REDIS_URI: str = Field("redis://redis:6379/0", env="REDIS_URI")
+
     # RabbitMQ Configuration
-    RABBITMQ_URI: Optional[str] = Field(None, env="RABBITMQ_URI")
-    
+    RABBITMQ_URI: str = Field("amqp://guest:guest@rabbitmq:5672//", env="RABBITMQ_URI")
     # API Keys (made optional to prevent startup errors)
     OPENAI_API_KEY: Optional[str] = Field(None, env="OPENAI_API_KEY")
     OPENAI_MODEL: str = Field("gpt-4", env="OPENAI_MODEL")
