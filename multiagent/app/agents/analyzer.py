@@ -29,15 +29,13 @@ class AnalyzerAgent(BaseAgent):
         agent_id: str,
         tracer: LangfuseTracer,
         jina_tool: Any,
-        openai_tool: Any,
-        bedrock_tool: Optional[Any] = None,
+        bedrock_tool: Any,
         serper_tool: Optional[Any] = None,
         scraper_tool: Optional[Any] = None
     ):
         """Initialize the analyzer agent with required tools."""
         super().__init__(agent_id=agent_id, tracer=tracer)
         self.jina_tool = jina_tool
-        self.openai_tool = openai_tool
         self.bedrock_tool = bedrock_tool
         self.serper_tool = serper_tool
         self.scraper_tool = scraper_tool
@@ -189,6 +187,10 @@ class AnalyzerAgent(BaseAgent):
         """Generate insights using Bedrock/Claude."""
         logger.info("Generating insights")
         
+        if not self.bedrock_tool:
+            logger.error("Bedrock tool required but not available")
+            return []
+        
         # Combine text samples for analysis
         combined_text = "\n\n".join([item.get("content", "")[:500] for item in information[:5]])
         
@@ -212,20 +214,12 @@ class AnalyzerAgent(BaseAgent):
         
         # Use Bedrock/Claude to generate insights
         try:
-            if self.bedrock_tool:
-                response = await bedrock.claude_generate.generate_text(
-                    client=self.bedrock_tool,
-                    prompt=prompt,
-                    max_tokens=1000,
-                    temperature=0.4
-                )
-            else:
-                # Fallback to OpenAI
-                response = await self.openai_tool.generate_text(
-                    prompt=prompt,
-                    max_tokens=1000,
-                    temperature=0.4
-                )
+            response = await bedrock.claude_generate.generate_text(
+                client=self.bedrock_tool,
+                prompt=prompt,
+                max_tokens=1000,
+                temperature=0.4
+            )
             
             # Parse the response into a list of insights
             insights_text = response.get("text", "")
@@ -289,6 +283,10 @@ class AnalyzerAgent(BaseAgent):
         """Generate a summary of the analysis using Bedrock/Claude."""
         logger.info("Generating summary")
         
+        if not self.bedrock_tool:
+            logger.error("Bedrock tool required but not available")
+            return "Analysis summary unavailable: Bedrock tool not configured"
+        
         # Extract top insights for the summary
         insight_points = "\n".join([
             f"- {insight.get('title', '')}: {insight.get('explanation', '')[:100]}..."
@@ -310,20 +308,12 @@ class AnalyzerAgent(BaseAgent):
         
         try:
             # Generate summary using Bedrock/Claude
-            if self.bedrock_tool:
-                response = await bedrock.claude_generate.generate_text(
-                    client=self.bedrock_tool,
-                    prompt=prompt,
-                    max_tokens=400,
-                    temperature=0.4
-                )
-            else:
-                # Fallback to OpenAI
-                response = await self.openai_tool.generate_text(
-                    prompt=prompt,
-                    max_tokens=400,
-                    temperature=0.4
-                )
+            response = await bedrock.claude_generate.generate_text(
+                client=self.bedrock_tool,
+                prompt=prompt,
+                max_tokens=400,
+                temperature=0.4
+            )
             
             return response.get("text", "Analysis summary unavailable")
             

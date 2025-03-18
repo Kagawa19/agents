@@ -41,12 +41,38 @@ class BedrockTool:
     def _initialize_client(self) -> None:
         """Initialize the Bedrock runtime client."""
         try:
+            # Create initial session with access keys
             session = boto3.Session(
                 aws_access_key_id=self.config.get("aws_access_key_id"),
                 aws_secret_access_key=self.config.get("aws_secret_access_key"),
                 region_name=self.region
             )
             
+            # Check if role ARN is provided for role assumption
+            role_arn = self.config.get("aws_role_arn")
+            if role_arn:
+                try:
+                    # Assume the Bedrock role
+                    sts_client = session.client('sts')
+                    assumed_role = sts_client.assume_role(
+                        RoleArn=role_arn,
+                        RoleSessionName="BedrockSession"
+                    )
+                    
+                    # Create a new session with the assumed role credentials
+                    credentials = assumed_role['Credentials']
+                    session = boto3.Session(
+                        aws_access_key_id=credentials['AccessKeyId'],
+                        aws_secret_access_key=credentials['SecretAccessKey'],
+                        aws_session_token=credentials['SessionToken'],
+                        region_name=self.region
+                    )
+                    logger.info(f"Successfully assumed role: {role_arn}")
+                except Exception as e:
+                    logger.error(f"Error assuming role {role_arn}: {str(e)}")
+                    # Continue with direct access keys if role assumption fails
+            
+            # Create the Bedrock runtime client
             self.client = session.client(
                 service_name="bedrock-runtime",
                 region_name=self.region
@@ -133,7 +159,8 @@ class BedrockTool:
             "claude": "anthropic.claude-v2",
             "claude-instant": "anthropic.claude-instant-v1",
             "claude-2": "anthropic.claude-v2",
-            "claude-3": "anthropic.claude-3-sonnet-20240229-v1:0",
+            "claude-3-sonnet": "anthropic.claude-3-sonnet-20240229-v1:0",
+            "claude-3-haiku": "anthropic.claude-3-haiku-20240307-v1:0",
             "titan": "amazon.titan-text-express-v1",
             "titan-embed": "amazon.titan-embed-text-v1",
             "llama2": "meta.llama2-13b-chat-v1"

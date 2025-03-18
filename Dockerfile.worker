@@ -26,7 +26,8 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir "docarray==0.21.0" && \
     pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir flower
+    pip install --no-cache-dir flower && \
+    pip install --no-cache-dir debugpy
 
 # Create a health check file
 RUN echo "#!/bin/sh\npython -c 'import socket; socket.socket().connect((\"redis\", 6379))'" > /app/healthcheck.sh \
@@ -38,5 +39,5 @@ HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD /app/healthcheck.sh
 # Copy project
 COPY . .
 
-# Command to run the Celery worker
-CMD ["celery", "-A", "multiagent.app.worker.celery_app", "worker", "--loglevel=info"]
+# Command to run the Celery worker with debugging
+CMD ["celery", "-A", "multiagent.app.worker.celery_app", "worker", "--loglevel=info", "--command", "python -m debugpy --listen 0.0.0.0:5678 -m celery"]

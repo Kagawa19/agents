@@ -1,4 +1,5 @@
 version: '3.8'
+
 services:
   api:
     build: 
@@ -50,51 +51,6 @@ services:
       - redis
       - rabbitmq
 
-  worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-    container_name: multiagent-worker
-    command: celery -A multiagent.app.worker.celery_app worker --loglevel=info
-    volumes:
-      - .:/app
-    networks:
-      - multiagent_network
-    environment:
-      - REDIS_URI=redis://redis:6379/0
-      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672//
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_MODEL=gpt-4
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_REGION=us-east-1
-      - BEDROCK_MODEL=anthropic.claude-3-sonnet-20240229-v1:0
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - JINA_API_KEY=${JINA_API_KEY}
-      - SERPER_API_KEY=${SERPER_API_KEY}
-      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
-      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
-      - LANGFUSE_HOST=https://cloud.langfuse.com
-    depends_on:
-      - redis
-      - rabbitmq
-
-  flower:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-    command: celery -A multiagent.app.worker.celery_app flower --port=5555
-    ports:
-      - "5555:5555"
-    networks:
-      - multiagent_network
-    environment:
-      - REDIS_URI=redis://redis:6379/0
-      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672//
-    depends_on:
-      - worker
-      - redis
-      - rabbitmq
 
   db:
     image: postgres:14-alpine
@@ -174,6 +130,55 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     depends_on:
       - prometheus
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: multiagent-worker
+    command: >
+      python -m debugpy --wait-for-client --listen 0.0.0.0:5679 
+      -m celery -A multiagent.app.worker.celery_app worker --loglevel=info
+    volumes:
+      - .:/app
+    ports:
+      - "5679:5678"
+    networks:
+      - multiagent_network
+    environment:
+      - REDIS_URI=redis://redis:6379/0
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672//
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=gpt-4
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=us-east-1
+      - BEDROCK_MODEL=anthropic.claude-3-sonnet-20240229-v1:0
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - JINA_API_KEY=${JINA_API_KEY}
+      - SERPER_API_KEY=${SERPER_API_KEY}
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+      - LANGFUSE_HOST=https://cloud.langfuse.com
+    depends_on:
+      - redis
+      - rabbitmq
+
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    command: celery -A multiagent.app.worker.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    networks:
+      - multiagent_network
+    environment:
+      - REDIS_URI=redis://redis:6379/0
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672//
+    depends_on:
+      - worker
+      - redis
+      - rabbitmq
 
 networks:
   multiagent_network:

@@ -3,6 +3,7 @@ WebScraper for content extraction.
 Extracts content from websites for analysis.
 """
 
+import asyncio
 import logging
 import re
 import aiohttp
