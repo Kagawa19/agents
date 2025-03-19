@@ -54,6 +54,16 @@ def init_db(drop_existing: bool = False) -> None:
         
         logger.info(f"Existing indexes: {existing_indexes}")
 
+        # Drop existing indexes if specified
+        if drop_existing:
+            for table_name in existing_tables:
+                indexes = inspector.get_indexes(table_name)
+                for index in indexes:
+                    index_name = index['name']
+                    if index_name:
+                        logger.info(f"Dropping index: {index_name}")
+                        inspector.drop_index(index_name, table_name)
+
         # Ensure tables exist before creating
         for table in Base.metadata.tables.values():
             table_name = table.name
