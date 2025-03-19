@@ -1,41 +1,38 @@
-"""
-Database session configuration.
-Provides connection setup and session management for SQLAlchemy.
-"""
-
 import logging
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, Session
 from typing import Generator
 
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
-
 from multiagent.app.core.config import settings
-
+from multiagent.app.db.base import Base
 
 logger = logging.getLogger(__name__)
 
-# Create engine for connecting to the database
+# Create engine
 engine = create_engine(
     settings.DATABASE_URI,
-    pool_pre_ping=True,
-    echo=settings.DATABASE_ECHO
+    pool_pre_ping=True,  # Test connections before using them
+    echo=settings.DATABASE_ECHO  # Log SQL statements if DEBUG is True
 )
 
-# Create session factory for creating database sessions
+# Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Create base class for declarative models
-Base = declarative_base()
-
+def init_db() -> None:
+    """
+    Initialize the database by creating all tables.
+    """
+    try:
+        # Create all tables defined in models
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables created successfully")
+    except Exception as e:
+        logger.error(f"Error initializing database: {e}")
+        raise
 
 def get_db() -> Generator[Session, None, None]:
     """
-    Get a database session.
-    Yields a SQLAlchemy session and ensures it's closed after use.
-    
-    Yields:
-        SQLAlchemy session
+    Dependency that provides a database session.
     """
     db = SessionLocal()
     try:
@@ -43,20 +40,33 @@ def get_db() -> Generator[Session, None, None]:
     finally:
         db.close()
 
-
-def init_db() -> None:
+def _create_default_configurations():
     """
-    Initialize the database.
-    Creates all tables if they don't exist.
+    Create default configurations if they don't exist.
+    This method can be expanded to include initial data setup.
     """
+    # Import models here to avoid circular imports
+    from multiagent.app.db.models import ProviderConfig
+    
+    db = SessionLocal()
     try:
-        # Create all tables
-        Base.metadata.create_all(bind=engine)
-        logger.info("Database tables created successfully")
+        # Example: Create a default provider configuration if not exists
+        # This is just a placeholder - customize based on your specific needs
+        existing_config = db.query(ProviderConfig).first()
+        if not existing_config:
+            default_config = ProviderConfig(
+                provider_id="default_openai",
+                config={"model": "gpt-4"},
+                is_active=True
+            )
+            db.add(default_config)
+            db.commit()
+            logger.info("Created default provider configuration")
     except Exception as e:
-        logger.error(f"Error creating database tables: {e}")
-        raise
-
+        db.rollback()
+        logger.error(f"Error creating default configurations: {e}")
+    finally:
+        db.close()
 
 def close_db() -> None:
     """

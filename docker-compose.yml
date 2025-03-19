@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: multiagent-api
     command: >
-      python -m debugpy --wait-for-client --listen 0.0.0.0:5678 
+      python -Xfrozen_modules=off -m debugpy --wait-for-client --listen 0.0.0.0:5678 
       -m uvicorn multiagent.app.main:app --host 0.0.0.0 --port 8000 --reload
     ports:
       - "8000:8000"
@@ -44,6 +44,7 @@ services:
       - PINECONE_INDEX_NAME=testing
       - VECTOR_DIMENSION=1024
       - VECTOR_METRIC=cosine
+      - PYDEVD_DISABLE_FILE_VALIDATION=1
     networks:
       - multiagent_network
     depends_on:
@@ -130,18 +131,19 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     depends_on:
       - prometheus
+
   worker:
     build:
       context: .
       dockerfile: Dockerfile.worker
     container_name: multiagent-worker
     command: >
-      python -m debugpy --wait-for-client --listen 0.0.0.0:5679 
+      python -Xfrozen_modules=off -m debugpy --wait-for-client --listen 0.0.0.0:5679 
       -m celery -A multiagent.app.worker.celery_app worker --loglevel=info
     volumes:
       - .:/app
     ports:
-      - "5679:5678"
+      - "5679:5679"
     networks:
       - multiagent_network
     environment:
@@ -159,6 +161,7 @@ services:
       - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
       - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
       - LANGFUSE_HOST=https://cloud.langfuse.com
+      - PYDEVD_DISABLE_FILE_VALIDATION=1
     depends_on:
       - redis
       - rabbitmq

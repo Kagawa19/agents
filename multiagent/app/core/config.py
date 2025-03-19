@@ -61,7 +61,10 @@ class Settings(BaseSettings):
         return ["*"]
     
     # Database Configuration
-    DATABASE_URI: str = Field("sqlite:///./multiagent.db", env="DATABASE_URI")
+    DATABASE_URI: str = Field(
+        "postgresql://postgres:postgres@db:5432/multiagent", 
+        env="DATABASE_URI"
+    )
     DATABASE_ECHO: bool = Field(False, env="DATABASE_ECHO")
     
     # Redis Configuration
