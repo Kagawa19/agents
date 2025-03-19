@@ -1,6 +1,6 @@
 """
-Base CRUD class for database operations.
-Provides generic CRUD operations that can be used by specific model handlers.
+Base classes for database operations.
+Contains the SQLAlchemy Base class and CRUD base class.
 """
 
 import logging
@@ -8,14 +8,15 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session
 
-from multiagent.app.db.session import Base
-
+# Create base class for declarative models
+Base = declarative_base()
 
 logger = logging.getLogger(__name__)
 
-ModelType = TypeVar("ModelType", bound=Base)
+ModelType = TypeVar("ModelType", bound=Base) # type: ignore
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
 UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 

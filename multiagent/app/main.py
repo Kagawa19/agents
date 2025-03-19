@@ -14,8 +14,8 @@ from multiagent.app.api.websocket import websocket_endpoint
 from multiagent.app.api.response import StandardResponse
 
 # Import database components
-from multiagent.app.db.session import engine, Base, get_db
-from multiagent.app.db.models import Result, AgentExecution, ProviderConfig, ProviderCapabilities, ProviderPerformance
+from multiagent.app.db.session import engine, get_db, init_db
+from multiagent.app.db.base import Base
 from sqlalchemy.orm import Session
 
 # Import monitoring components
@@ -49,18 +49,23 @@ app.add_middleware(PrometheusMiddleware)
 @app.on_event("startup")
 async def startup_event():
     try:
-        # Create tables if they don't exist
-        Base.metadata.create_all(bind=engine)
+        # Initialize database
+        # Use drop_existing=True during development to reset database
+        init_db(drop_existing=True)
+
         logger.info("Database initialized successfully")
-        
+
         # Initialize default providers if not exists
         await initialize_default_providers()
-        
+
     except Exception as e:
         logger.error(f"Error during startup: {str(e)}")
 
 async def initialize_default_providers():
     """Initialize default providers if they don't exist in the database."""
+    # Import models here to avoid circular imports
+    from multiagent.app.db.models import ProviderConfig, ProviderCapabilities
+    
     db = next(get_db())
     try:
         # Check if providers exist
@@ -68,7 +73,7 @@ async def initialize_default_providers():
         if providers_count > 0:
             logger.info(f"Found {providers_count} existing providers")
             return
-            
+
         # Create default providers
         providers = [
             {
@@ -89,7 +94,7 @@ async def initialize_default_providers():
             {
                 "provider_id": "jina",
                 "config": {
-                    "host": "localhost",
+                    "host": "localhost", 
                     "port": 8080,
                     "workspace_dir": "./workspace"
                 },
@@ -109,7 +114,7 @@ async def initialize_default_providers():
                 ]
             }
         ]
-        
+
         # Add providers to database
         for provider_data in providers:
             provider = ProviderConfig(
@@ -119,7 +124,7 @@ async def initialize_default_providers():
             )
             db.add(provider)
             db.flush()
-            
+
             # Add capabilities
             for cap in provider_data["capabilities"]:
                 capability = ProviderCapabilities(
@@ -129,10 +134,10 @@ async def initialize_default_providers():
                     additional_data={}  # Changed from metadata to additional_data
                 )
                 db.add(capability)
-                
+
         db.commit()
         logger.info("Initialized default providers")
-        
+
     except Exception as e:
         db.rollback()
         logger.error(f"Error initializing providers: {str(e)}")
@@ -144,16 +149,16 @@ async def initialize_default_providers():
 async def api_submit_query(query_data: QueryRequest, background_tasks: BackgroundTasks):
     """
     Submit a query for processing.
-    
+
     Args:
         query_data: Query request data
         background_tasks: FastAPI background tasks
-        
+
     Returns:
         StandardResponse with task ID and status
     """
     try:
-        result = await submit_query(query_data.dict())
+        result = await submit_query(query_data.dict()) 
         return StandardResponse(
             status="success",
             data=result
@@ -169,10 +174,10 @@ async def api_submit_query(query_data: QueryRequest, background_tasks: Backgroun
 async def api_get_query_status(task_id: str):
     """
     Get the status of a query.
-    
+
     Args:
         task_id: The task ID
-        
+
     Returns:
         StandardResponse with query status
     """
@@ -193,10 +198,10 @@ async def api_get_query_status(task_id: str):
 async def api_get_query_result(task_id: str):
     """
     Get the result of a query.
-    
+
     Args:
         task_id: The task ID
-        
+
     Returns:
         StandardResponse with query result
     """
@@ -218,7 +223,7 @@ async def api_get_query_result(task_id: str):
 async def websocket_endpoint_route(websocket: WebSocket):
     """
     WebSocket endpoint for real-time updates.
-    
+
     Args:
         websocket: WebSocket connection
     """
@@ -229,24 +234,24 @@ async def websocket_endpoint_route(websocket: WebSocket):
 async def metrics():
     """
     Get Prometheus metrics.
-    
+
     Returns:
         Metrics in Prometheus format
     """
     from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
     from fastapi.responses import Response
-    
+
     return Response(
         content=generate_latest(),
         media_type=CONTENT_TYPE_LATEST
     )
 
 # Health check endpoint
-@app.get("/health")
+@app.get("/health")  
 async def health_check():
     """
     Health check endpoint.
-    
+
     Returns:
         Health status
     """
@@ -257,22 +262,25 @@ async def health_check():
 async def get_providers(db: Session = Depends(get_db)):
     """
     Get all providers.
-    
+
     Args:
         db: Database session
-        
+
     Returns:
         StandardResponse with providers
     """
-    providers = db.query(ProviderConfig).all()
+    # Import models here to avoid circular imports
+    from multiagent.app.db.models import ProviderConfig, ProviderCapabilities
     
+    providers = db.query(ProviderConfig).all()
+
     provider_list = []
     for provider in providers:
         # Get capabilities
         capabilities = db.query(ProviderCapabilities).filter(
             ProviderCapabilities.provider_id == provider.id
         ).all()
-        
+
         capability_list = [
             {
                 "type": cap.capability_type,
@@ -281,7 +289,7 @@ async def get_providers(db: Session = Depends(get_db)):
             }
             for cap in capabilities
         ]
-        
+
         provider_list.append({
             "id": provider.id,
             "provider_id": provider.provider_id,
@@ -291,7 +299,7 @@ async def get_providers(db: Session = Depends(get_db)):
             "updated_at": provider.updated_at.isoformat(),
             "capabilities": capability_list
         })
-    
+
     return StandardResponse(
         status="success",
         data=provider_list
@@ -301,23 +309,26 @@ async def get_providers(db: Session = Depends(get_db)):
 async def toggle_provider(provider_id: str, db: Session = Depends(get_db)):
     """
     Toggle a provider's active state.
-    
+
     Args:
         provider_id: Provider ID
         db: Database session
-        
+
     Returns:
         StandardResponse with updated provider
     """
-    provider = db.query(ProviderConfig).filter(ProviderConfig.provider_id == provider_id).first()
+    # Import model here to avoid circular imports
+    from multiagent.app.db.models import ProviderConfig
     
+    provider = db.query(ProviderConfig).filter(ProviderConfig.provider_id == provider_id).first()
+
     if not provider:
         raise HTTPException(status_code=404, detail=f"Provider {provider_id} not found")
-        
+
     # Toggle is_active
     provider.is_active = not provider.is_active
     db.commit()
-    
+
     return StandardResponse(
         status="success",
         data={
@@ -336,35 +347,38 @@ async def get_provider_performance(
 ):
     """
     Get provider performance metrics.
-    
+
     Args:
         provider_id: Optional provider ID filter
         task_type: Optional task type filter
         limit: Maximum number of records
         db: Database session
-        
+
     Returns:
         StandardResponse with performance metrics
     """
-    query = db.query(ProviderPerformance)
+    # Import models here to avoid circular imports
+    from multiagent.app.db.models import ProviderConfig, ProviderPerformance
     
+    query = db.query(ProviderPerformance)
+
     # Apply filters
     if provider_id:
         provider = db.query(ProviderConfig).filter(ProviderConfig.provider_id == provider_id).first()
         if provider:
             query = query.filter(ProviderPerformance.provider_id == provider.id)
-    
+
     if task_type:
         query = query.filter(ProviderPerformance.task_type == task_type)
-        
+
     # Get records
     records = query.order_by(ProviderPerformance.recorded_at.desc()).limit(limit).all()
-    
+
     # Format results
     performance_data = []
     for record in records:
         provider = db.query(ProviderConfig).filter(ProviderConfig.id == record.provider_id).first()
-        
+
         performance_data.append({
             "id": record.id,
             "provider_id": provider.provider_id if provider else None,
@@ -379,7 +393,7 @@ async def get_provider_performance(
             "recorded_at": record.recorded_at.isoformat(),
             "metadata": record.additional_data  # Changed from metadata to additional_data
         })
-    
+
     return StandardResponse(
         status="success",
         data=performance_data
@@ -389,7 +403,7 @@ async def get_provider_performance(
 if __name__ == "__main__":
     # Get port from environment or use default
     port = int(os.getenv("PORT", 8000))
-    
+
     # Run with uvicorn
     uvicorn.run(
         "main:app",

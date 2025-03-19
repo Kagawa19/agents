@@ -2,6 +2,7 @@
 Task definitions for asynchronous processing.
 Defines Celery tasks for executing workflows and agents.
 """
+import asyncio
 import json
 import logging
 import time
@@ -11,21 +12,13 @@ from celery import states
 from celery.exceptions import MaxRetriesExceededError, Retry
 
 from multiagent.app.api.websocket import connection_manager
-from multiagent.app.db.models import Result
-from multiagent.app.db.results import crud_result
+from multiagent.app.db.base import Base  # Import Base from base.py
 from multiagent.app.db.session import SessionLocal
 from multiagent.app.worker.celery_app import celery_app
 
+# We'll import Result, crud_result inside the functions
 
 logger = logging.getLogger(__name__)
-
-
-
-
-import asyncio
-import time
-import traceback
-from typing import Dict, Any
 
 @celery_app.task(bind=True, name="app.worker.tasks.execute_workflow_task")
 def execute_workflow_task(
@@ -43,12 +36,23 @@ def execute_workflow_task(
     Returns:
         The workflow result
     """
+    # Import inside the function to avoid circular imports
+    from multiagent.app.db.models import Result
+    from multiagent.app.db.results import crud_result
+    from multiagent.app.core.config import settings
+    
+    # Debug Point 1: Entry point - verify task received with correct parameters
+    logger.info(f"DEBUG POINT 1: Task started with workflow_id={workflow_id}, input_data keys={list(input_data.keys())}")
+    
     # Extract input data
     task_id = input_data.get("task_id")
     query = input_data.get("query")
     user_id = input_data.get("user_id")
     parameters = input_data.get("parameters", {})
     trace_id = input_data.get("trace_id")
+    
+    # Debug Point 2: After extracting input data
+    logger.info(f"DEBUG POINT 2: Extracted data - task_id={task_id}, user_id={user_id}, query_preview={query[:50] if query else 'None'}")
     
     # Enhanced logging with more context
     logger.info(
@@ -59,6 +63,9 @@ def execute_workflow_task(
     
     # Detailed log for input parameters
     logger.debug(f"Workflow input parameters: {parameters}")
+    
+    # Debug Point 3: Before database operations
+    logger.info(f"DEBUG POINT 3: About to perform database operations for task_id={task_id}")
     
     # Save task to database
     try:
@@ -87,6 +94,9 @@ def execute_workflow_task(
     )
     
     try:
+        # Debug Point 4: Before component initialization
+        logger.info(f"DEBUG POINT 4: About to initialize components for task_id={task_id}")
+        
         # Initialize components with detailed logging
         try:
             logger.info("Setting up execution environment")
@@ -94,7 +104,6 @@ def execute_workflow_task(
             from multiagent.app.monitoring.tracer import get_tracer
             from multiagent.app.orchestrator.manager import AgentManager
             from multiagent.app.orchestrator.workflow import WorkflowManager
-            from multiagent.app.core.config import settings
             
             # Progress update
             update_progress.delay(
@@ -152,6 +161,9 @@ def execute_workflow_task(
         # Execute the workflow with progress updates
         start_time = time.time()
         
+        # Debug Point 5: Before workflow execution
+        logger.info(f"DEBUG POINT 5: About to execute workflow for task_id={task_id}")
+        
         # Log before workflow execution
         logger.info(f"Beginning workflow execution: {workflow_id}")
         
@@ -182,6 +194,9 @@ def execute_workflow_task(
         
         # Run async workflow execution
         result = asyncio.run(safe_workflow_execute())
+        
+        # Debug Point 6: After workflow execution
+        logger.info(f"DEBUG POINT 6: Workflow execution completed for task_id={task_id}, result_preview={str(result)[:100]}")
         
         execution_time = time.time() - start_time
         
@@ -221,6 +236,9 @@ def execute_workflow_task(
             progress=100,
             result=result
         )
+        
+        # Debug Point 7: Before final result return
+        logger.info(f"DEBUG POINT 7: Returning final result for task_id={task_id}")
         
         logger.info(f"Workflow {workflow_id} fully processed (Task ID: {task_id})")
         return result
@@ -295,6 +313,9 @@ def update_progress(
     Returns:
         The update message
     """
+    # Import inside the function to avoid circular imports
+    from multiagent.app.db.models import Result
+    
     # Create message
     message = {
         "type": "progress_update",
@@ -345,6 +366,9 @@ def execute_agent_task(
     Returns:
         The agent result
     """
+    # Import inside the function to avoid circular imports
+    from multiagent.app.db.results import crud_result
+    
     logger.info(f"Executing agent {agent_id} (Task ID: {self.request.id})")
     
     try:

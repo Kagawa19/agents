@@ -11,8 +11,7 @@ from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Index, Inte
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from multiagent.app.db.session import Base
-
+from multiagent.app.db.base import Base 
 class ProviderConfig(Base):
     """
     Model for storing provider configuration.
@@ -81,6 +80,7 @@ class Result(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     task_id = Column(String(255), unique=True, index=True, nullable=False)
+    celery_task_id = Column(String(255), index=True, nullable=True)  # Field for Celery task ID mapping
     query = Column(Text, nullable=False)
     user_id = Column(String(255), index=True, nullable=True)
     workflow = Column(String(255), index=True, nullable=False)
@@ -93,6 +93,7 @@ class Result(Base):
     __table_args__ = (
         Index("ix_results_query_workflow", "query", "workflow"),
         Index("ix_results_status_created_at", "status", "created_at"),
+        Index("ix_results_celery_task_id", "celery_task_id"),  # Index for faster lookups
     )
     
     # Relationships

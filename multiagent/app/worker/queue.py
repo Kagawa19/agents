@@ -124,6 +124,33 @@ class TaskQueue:
         logger.error(f"TaskQueue: Failed to submit task {task_name} after {max_retries} attempts")
         raise Exception(f"Failed to submit task {task_name} after {max_retries} attempts")
 
+    async def get_celery_task_id(self, task_id: str) -> Optional[str]:
+        """
+        Get the Celery task ID for a given task UUID.
+        
+        Args:
+            task_id: Your UUID for the task
+            
+        Returns:
+            The Celery task ID or None if not found
+        """
+        # Import inside function to avoid circular imports
+        from multiagent.app.db.session import SessionLocal
+        from multiagent.app.db.models import Result
+        
+        try:
+            with SessionLocal() as db:
+                result = db.query(Result).filter(Result.task_id == task_id).first()
+                if result and result.celery_task_id:
+                    logger.debug(f"TaskQueue: Found Celery task ID {result.celery_task_id} for task {task_id}")
+                    return result.celery_task_id
+                else:
+                    logger.warning(f"TaskQueue: No Celery task ID found for task {task_id}")
+        except Exception as e:
+            logger.error(f"TaskQueue: Error getting Celery task ID for {task_id}: {str(e)}")
+        
+        return None
+    
     async def get_task_status(self, task_id: str) -> Dict[str, Any]:
         """
         Get the status of a task with proper error handling.
@@ -137,8 +164,21 @@ class TaskQueue:
         logger.info(f"TaskQueue: Getting status for task {task_id}")
         
         try:
-            # Create AsyncResult with timeout handling
-            result = AsyncResult(task_id, app=celery_app)
+            # Get the Celery task ID
+            celery_task_id = await self.get_celery_task_id(task_id)
+            
+            if not celery_task_id:
+                logger.warning(f"TaskQueue: No Celery task ID found for {task_id}")
+                return {
+                    "task_id": task_id,
+                    "status": "unknown",
+                    "error": "No Celery task ID mapping found",
+                    "progress": 0,
+                    "updated_at": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+                }
+            
+            # Now use the Celery task ID to get the status
+            result = AsyncResult(celery_task_id, app=celery_app)
             
             # Map Celery status to application status
             status_mapping = {
@@ -183,7 +223,7 @@ class TaskQueue:
             if info:
                 status_data.update(info)
             
-            logger.info(f"TaskQueue: Status for task {task_id}: {app_status} ({progress}%)")
+            logger.info(f"TaskQueue: Status for task {task_id} (Celery ID: {celery_task_id}): {app_status} ({progress}%)")
             return status_data
             
         except Exception as e:
@@ -195,7 +235,7 @@ class TaskQueue:
                 "progress": 0,
                 "updated_at": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
             }
-
+    
     async def get_task_result(self, task_id: str) -> Dict[str, Any]:
         """
         Get the result of a task with proper error handling.
@@ -209,17 +249,31 @@ class TaskQueue:
         logger.info(f"TaskQueue: Getting result for task {task_id}")
         
         try:
-            result = AsyncResult(task_id, app=celery_app)
+            # Get the Celery task ID
+            celery_task_id = await self.get_celery_task_id(task_id)
+            
+            if not celery_task_id:
+                logger.warning(f"TaskQueue: No Celery task ID found for {task_id}")
+                return {
+                    "task_id": task_id,
+                    "status": "unknown",
+                    "error": "No Celery task ID mapping found",
+                    "progress": 0,
+                    "created_at": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+                }
+            
+            # Now use the Celery task ID to get the result
+            result = AsyncResult(celery_task_id, app=celery_app)
             
             # Check if task is ready
             if not result.ready():
-                logger.info(f"TaskQueue: Task {task_id} is not ready yet")
+                logger.info(f"TaskQueue: Task {task_id} (Celery ID: {celery_task_id}) is not ready yet")
                 status = await self.get_task_status(task_id)
                 return status
             
             # Task is ready - get the result or exception
             if result.successful():
-                logger.info(f"TaskQueue: Task {task_id} completed successfully")
+                logger.info(f"TaskQueue: Task {task_id} (Celery ID: {celery_task_id}) completed successfully")
                 task_result = result.get()
                 
                 # Ensure result is a dictionary
@@ -235,7 +289,7 @@ class TaskQueue:
                 }
             else:
                 # Task failed
-                logger.warning(f"TaskQueue: Task {task_id} failed")
+                logger.warning(f"TaskQueue: Task {task_id} (Celery ID: {celery_task_id}) failed")
                 error = str(result.get(propagate=False))
                 
                 return {
@@ -255,7 +309,6 @@ class TaskQueue:
                 "progress": 0,
                 "created_at": time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
             }
-    
     def update_task_progress(
         self,
         task_id: str,

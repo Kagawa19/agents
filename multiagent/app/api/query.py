@@ -4,13 +4,14 @@ from pydantic import BaseModel, Field, validator
 import uuid
 import logging
 from datetime import datetime
-from multiagent.app.worker.tasks import update_progress, execute_workflow_task  # Import execute_workflow_task
-# Import from other modules
-from multiagent.app.monitoring.tracer import LangfuseTracer
+import traceback
+import time
 import os
 from dotenv import load_dotenv
-# Import the TaskQueue class
+
+# Import task queue at the top level is fine
 from multiagent.app.worker.queue import TaskQueue
+from multiagent.app.monitoring.tracer import LangfuseTracer
 
 # Load environment variables
 load_dotenv()
@@ -83,26 +84,45 @@ async def submit_query(query_data: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Dict containing task_id and initial status
     """
+    # Import here to avoid circular imports
+    from multiagent.app.worker.tasks import execute_workflow_task
+    
+    # Debug point 1: Log incoming query data
+    logger.debug(f"Received query data: {query_data}")
+    
     # Create QueryRequest for validation
     request = QueryRequest(**query_data)
     
     # Check if request is valid
     if not request.validate():
+        logger.error(f"Invalid query parameters: {query_data}")
         raise ValueError("Invalid query parameters")
     
     # Generate task ID
     task_id = str(uuid.uuid4())
     
+    # Debug point 2: Log task ID
+    logger.debug(f"Generated task_id: {task_id}")
+    
     # Create trace for monitoring
-    trace_id_obj = tracer.create_trace(
-        task_id=task_id,
-        name="query_execution",
-        metadata={
-            "query": request.query, 
-            "workflow_type": request.workflow_type,
-            "user_id": request.user_id
-        }
-    )
+    try:
+        trace_id_obj = tracer.create_trace(
+            task_id=task_id,
+            name="query_execution",
+            metadata={
+                "query": request.query, 
+                "workflow_type": request.workflow_type,
+                "user_id": request.user_id
+            }
+        )
+        
+        # Debug point 3: Log trace creation
+        logger.debug(f"Created trace: {trace_id_obj}")
+        
+    except Exception as trace_error:
+        logger.error(f"Error creating trace: {trace_error}")
+        # Continue without trace if it fails
+        trace_id_obj = {"id": "error-creating-trace"}
     
     logger.info(f"Submitting query: {request.query[:50]}... (task_id: {task_id})")
     
@@ -121,17 +141,28 @@ async def submit_query(query_data: Dict[str, Any]) -> Dict[str, Any]:
         }
     }
     
+    # Debug point 4: Log task kwargs
+    logger.debug(f"Task kwargs prepared: {task_kwargs}")
+    
     # Only add priority if it's not None
     if request.priority is not None:
         task_kwargs['input_data']['priority'] = request.priority
+        logger.debug(f"Added priority: {request.priority}")
     
     try:
-        # Enhanced logging before task submission for debugging
-        logger.info(f"About to submit task with the following kwargs: {task_kwargs}")
+        # Debug point 5: Log before task submission
+        logger.info(f"About to submit task with: workflow_id={request.workflow_type}")
+        
+        # REMOVE THE SLEEP - this is causing delays
+        # import time
+        # time.sleep(10)  
         
         # Submit the execute_workflow_task with more detailed logging
         result = execute_workflow_task.delay(**task_kwargs)
+        
+        # Debug point 6: Log task submission result
         logger.info(f"Task submitted successfully. Task ID from result: {result.id}")
+        logger.debug(f"Celery task result object: {result}")
         
         # Add additional debugging information in the response
         return {
@@ -147,7 +178,6 @@ async def submit_query(query_data: Dict[str, Any]) -> Dict[str, Any]:
         logger.error(f"Task kwargs: {task_kwargs}")
         # Include more details about the exception for debugging
         logger.error(f"Exception type: {type(e)}")
-        import traceback
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise
 
@@ -173,9 +203,15 @@ async def update_task_progress(
     Returns:
         True if the update was successful, False otherwise
     """
+    # Import here to avoid circular imports
+    from multiagent.app.worker.tasks import update_progress
+    
     try:
+        # Debug logging progress update
+        logger.debug(f"Updating progress for task {task_id}: status={status}, progress={progress}")
+        
         # Call the update_progress task
-        update_progress.delay(
+        progress_task = update_progress.delay(
             task_id=task_id,
             status=status,
             progress=progress,
@@ -183,10 +219,12 @@ async def update_task_progress(
             result=result,
             error=error
         )
-        logger.debug(f"Updated progress for task {task_id}: {status} ({progress}%)")
+        
+        logger.debug(f"Progress update submitted: {progress_task.id}")
         return True
     except Exception as e:
         logger.error(f"Error updating progress for task {task_id}: {str(e)}")
+        logger.error(traceback.format_exc())
         return False
 
 async def get_query_status(task_id: str) -> Dict[str, Any]:
@@ -201,22 +239,30 @@ async def get_query_status(task_id: str) -> Dict[str, Any]:
     """
     logger.debug(f"Checking status for task: {task_id}")
     
-    # Get status from task queue
-    status_data = await task_queue.get_task_status(task_id)
-    
-    if not status_data:
-        raise ValueError(f"Task {task_id} not found")
-    
-    # Format as QueryStatus
-    status = QueryStatus(
-        task_id=task_id,
-        status=status_data.get("status", "unknown"),
-        progress=status_data.get("progress", 0.0),
-        started_at=status_data.get("started_at"),
-        updated_at=status_data.get("updated_at")
-    )
-    
-    return status.dict()
+    try:
+        # Get status from task queue
+        status_data = await task_queue.get_task_status(task_id)
+        
+        logger.debug(f"Retrieved status data: {status_data}")
+        
+        if not status_data:
+            logger.warning(f"Task {task_id} not found")
+            raise ValueError(f"Task {task_id} not found")
+        
+        # Format as QueryStatus
+        status = QueryStatus(
+            task_id=task_id,
+            status=status_data.get("status", "unknown"),
+            progress=status_data.get("progress", 0.0),
+            started_at=status_data.get("started_at"),
+            updated_at=status_data.get("updated_at")
+        )
+        
+        return status.dict()
+    except Exception as e:
+        logger.error(f"Error getting query status: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise
 
 async def get_query_result(task_id: str) -> Dict[str, Any]:
     """
@@ -230,27 +276,35 @@ async def get_query_result(task_id: str) -> Dict[str, Any]:
     """
     logger.debug(f"Retrieving result for task: {task_id}")
     
-    # Get result from task queue
-    result_data = await task_queue.get_task_result(task_id)
-    
-    if not result_data:
-        raise ValueError(f"Result for task {task_id} not found")
-    
-    # Check if task is completed
-    if result_data.get("status") != "completed":
-        return {
-            "task_id": task_id,
-            "status": result_data.get("status", "pending"),
-            "progress": result_data.get("progress", 0.0)
-        }
-    
-    # Format as QueryResponse
-    response = QueryResponse(
-        task_id=task_id,
-        result=result_data.get("result", {}),
-        status="completed",
-        execution_time=result_data.get("execution_time"),
-        created_at=result_data.get("created_at")
-    )
-    
-    return response.dict()
+    try:
+        # Get result from task queue
+        result_data = await task_queue.get_task_result(task_id)
+        
+        logger.debug(f"Retrieved result data: {result_data}")
+        
+        if not result_data:
+            logger.warning(f"Result for task {task_id} not found")
+            raise ValueError(f"Result for task {task_id} not found")
+        
+        # Check if task is completed
+        if result_data.get("status") != "completed":
+            return {
+                "task_id": task_id,
+                "status": result_data.get("status", "pending"),
+                "progress": result_data.get("progress", 0.0)
+            }
+        
+        # Format as QueryResponse
+        response = QueryResponse(
+            task_id=task_id,
+            result=result_data.get("result", {}),
+            status="completed",
+            execution_time=result_data.get("execution_time"),
+            created_at=result_data.get("created_at")
+        )
+        
+        return response.dict()
+    except Exception as e:
+        logger.error(f"Error getting query result: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise
