@@ -1,4 +1,9 @@
 import logging
+import importlib
+import sys
+from sqlalchemy import inspect, text
+import pkgutil
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from typing import Generator
@@ -11,71 +16,77 @@ logger = logging.getLogger(__name__)
 # Create engine
 engine = create_engine(
     settings.DATABASE_URI,
-    pool_pre_ping=True,  # Test connections before using them
-    echo=settings.DATABASE_ECHO  # Log SQL statements if DEBUG is True
+    pool_pre_ping=True,
+    echo=settings.DATABASE_ECHO
 )
 
 # Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-def init_db() -> None:
-    """
-    Initialize the database by creating all tables.
-    """
+def init_db(drop_existing: bool = False) -> None:
     try:
-        # Create all tables defined in models
-        Base.metadata.create_all(bind=engine)
-        logger.info("Database tables created successfully")
+        # Dynamically import models
+        models_module = importlib.import_module('multiagent.app.db.models')
+
+        # Log all available models
+        logger.info("Available models:")
+        for name, obj in models_module.__dict__.items():
+            if hasattr(obj, '__tablename__'):
+                logger.info(f"- {name}")
+
+        inspector = inspect(engine)
+
+        # Drop tables if specified
+        if drop_existing:
+            Base.metadata.drop_all(bind=engine)
+            logger.warning("All existing database tables dropped")
+
+        # Get all existing tables
+        existing_tables = inspector.get_table_names()
+        logger.info(f"Existing tables: {existing_tables}")
+
+        # Get all existing indexes
+        existing_indexes = set()
+        for table_name in existing_tables:
+            indexes = inspector.get_indexes(table_name)
+            for index in indexes:
+                existing_indexes.add(index['name'])
+        
+        logger.info(f"Existing indexes: {existing_indexes}")
+
+        # Ensure tables exist before creating
+        for table in Base.metadata.tables.values():
+            table_name = table.name
+
+            if table_name not in existing_tables:
+                logger.info(f"Creating table: {table_name}")
+                table.create(engine)
+            else:
+                logger.info(f"Table {table_name} already exists, skipping creation")
+
+            # Ensure indexes exist before creating
+            for index in table.indexes:
+                index_name = index.name
+                if index_name and index_name not in existing_indexes:
+                    try:
+                        logger.info(f"Creating index: {index_name}")
+                        index.create(engine)
+                    except Exception as index_error:
+                        logger.error(f"Error creating index {index_name}: {index_error}")
+                else:
+                    logger.info(f"Index {index_name} already exists, skipping creation")
+
+        logger.info("Database initialization complete")
+
     except Exception as e:
         logger.error(f"Error initializing database: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
         raise
 
 def get_db() -> Generator[Session, None, None]:
-    """
-    Dependency that provides a database session.
-    """
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-
-def _create_default_configurations():
-    """
-    Create default configurations if they don't exist.
-    This method can be expanded to include initial data setup.
-    """
-    # Import models here to avoid circular imports
-    from multiagent.app.db.models import ProviderConfig
-    
-    db = SessionLocal()
-    try:
-        # Example: Create a default provider configuration if not exists
-        # This is just a placeholder - customize based on your specific needs
-        existing_config = db.query(ProviderConfig).first()
-        if not existing_config:
-            default_config = ProviderConfig(
-                provider_id="default_openai",
-                config={"model": "gpt-4"},
-                is_active=True
-            )
-            db.add(default_config)
-            db.commit()
-            logger.info("Created default provider configuration")
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Error creating default configurations: {e}")
-    finally:
-        db.close()
-
-def close_db() -> None:
-    """
-    Close database connections.
-    Should be called during application shutdown.
-    """
-    try:
-        if engine is not None:
-            engine.dispose()
-            logger.info("Database connections closed")
-    except Exception as e:
-        logger.error(f"Error closing database connections: {e}")
