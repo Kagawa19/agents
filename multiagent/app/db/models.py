@@ -2,13 +2,11 @@
 SQLAlchemy models for the multiagent LLM system.
 Defines the database schema for storing results and related data.
 """
-
-import uuid
 from datetime import datetime
+import uuid
 from sqlalchemy import (
     Boolean, Column, DateTime, Float, ForeignKey, Index, Integer, JSON, String, Text
 )
-from sqlalchemy import DateTime
 
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -163,5 +161,3 @@ class AgentMetrics(Base):
         Index("idx_agent_metrics_agent_task", "agent_id", "task_type"),
         Index("idx_agent_metrics_last_executed_at", "last_executed_at"),
     )
-
- 
