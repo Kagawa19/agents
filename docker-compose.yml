@@ -12,6 +12,9 @@ services:
     ports:
       - "8000:8000"
       - "5678:5678"
+    volumes:
+      - .:/app
+      - ./multiagent:/app/multiagent
     environment:
       - API_HOST=0.0.0.0
       - API_PORT=8000
@@ -51,7 +54,6 @@ services:
       - db
       - redis
       - rabbitmq
-
 
   db:
     image: postgres:14-alpine
@@ -142,6 +144,7 @@ services:
       -m celery -A multiagent.app.worker.celery_app worker --loglevel=info
     volumes:
       - .:/app
+      - ./multiagent:/app/multiagent
     ports:
       - "5679:5679"
     networks:

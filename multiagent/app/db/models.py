@@ -185,6 +185,9 @@ class AgentExecution(Base):
         except (TypeError, ValueError):
             return {"data": str(value), "error": f"{key} was not JSON serializable"}
 
+    def __repr__(self):
+        return f"<AgentExecution(id={self.id}, result_id={self.result_id}, agent_id={self.agent_id}, status={self.status})>"
+
 class APIRequest(Base):
     """
     Model for logging API requests.

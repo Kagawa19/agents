@@ -174,21 +174,22 @@ class TaskQueue:
         logger.info(f"Updating task status: {task_id}, status: {status}, progress: {progress}")
         
         try:
-            from multiagent.app.api.websocket import connection_manager
+            # Import WebSocket connection manager
+            from multiagent.app.api.websocket import ConnectionManager
 
-            # Implement task status update logic
-            # This could involve sending updates to a WebSocket, 
-            # updating a task tracking system, etc.
-            
-            # You might want to use a task tracking mechanism here
-            # For example, you could send a WebSocket message
-            await connection_manager.update_state(
-                task_id=task_id,
-                status=status,
-                progress=progress,
-                current_step=current_step,
-                result=result,
-                error=error
+            # Create an instance of ConnectionManager
+            connection_manager = ConnectionManager()
+
+            # Broadcast the update via WebSocket
+            await connection_manager.broadcast(
+                message={
+                    "task_id": task_id,
+                    "status": status,
+                    "progress": progress,
+                    "current_step": current_step,
+                    "result": result,
+                    "error": error
+                }
             )
             
             return {
@@ -199,7 +200,6 @@ class TaskQueue:
         except Exception as e:
             logger.error(f"Error updating task status: {e}")
             raise
-    
     async def get_task_status(self, task_id: str) -> Dict[str, Any]:
         """
         Get the status of a task with proper error handling.
