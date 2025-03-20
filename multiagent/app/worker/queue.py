@@ -11,7 +11,6 @@ import uuid
 from celery.result import AsyncResult
 
 from multiagent.app.worker.celery_app import celery_app
-from multiagent.app.worker.tasks import update_progress
 
 logger = logging.getLogger(__name__)
 
@@ -150,6 +149,56 @@ class TaskQueue:
             logger.error(f"TaskQueue: Error getting Celery task ID for {task_id}: {str(e)}")
         
         return None
+    
+    # In queue.py
+    async def update_task_status(
+        self, 
+        task_id: str, 
+        status: str, 
+        progress: int, 
+        current_step: Optional[str] = None, 
+        result: Optional[Dict[str, Any]] = None, 
+        error: Optional[str] = None
+    ):
+        """
+        Update the status of a task in the queue.
+        
+        Args:
+            task_id: Unique identifier for the task
+            status: Current status of the task
+            progress: Progress percentage
+            current_step: Current step of task execution (optional)
+            result: Result of the task (optional)
+            error: Error message if task failed (optional)
+        """
+        logger.info(f"Updating task status: {task_id}, status: {status}, progress: {progress}")
+        
+        try:
+            from multiagent.app.api.websocket import connection_manager
+
+            # Implement task status update logic
+            # This could involve sending updates to a WebSocket, 
+            # updating a task tracking system, etc.
+            
+            # You might want to use a task tracking mechanism here
+            # For example, you could send a WebSocket message
+            await connection_manager.send_task_update(
+                task_id=task_id,
+                status=status,
+                progress=progress,
+                current_step=current_step,
+                result=result,
+                error=error
+            )
+            
+            return {
+                "task_id": task_id,
+                "status": status,
+                "progress": progress
+            }
+        except Exception as e:
+            logger.error(f"Error updating task status: {e}")
+            raise
     
     async def get_task_status(self, task_id: str) -> Dict[str, Any]:
         """
@@ -318,21 +367,10 @@ class TaskQueue:
         result: Optional[Dict[str, Any]] = None,
         error: Optional[str] = None
     ) -> bool:
-        """
-        Update the progress of a task.
-        
-        Args:
-            task_id: ID of the task
-            status: Status of the task
-            progress: Progress percentage (0-100)
-            current_step: Current step being executed
-            result: Task result (if completed)
-            error: Error message (if failed)
-        
-        Returns:
-            True if the update was successful, False otherwise
-        """
         try:
+            # Dynamically import update_progress to avoid circular imports
+            from multiagent.app.worker.tasks import update_progress
+
             logger.info(f"TaskQueue: Updating progress for task {task_id}: {status} ({progress}%)")
             
             # Call the update_progress task with retry
@@ -359,7 +397,6 @@ class TaskQueue:
         except Exception as e:
             logger.error(f"TaskQueue: Error updating progress for task {task_id}: {str(e)}")
             return False
-    
     def cancel_task(self, task_id: str) -> bool:
         """
         Cancel a task.

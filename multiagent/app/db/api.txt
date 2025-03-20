@@ -1,0 +1,97 @@
+time="2025-03-20T10:33:00Z" level=warning msg="/workspaces/agents/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+multiagent-api  | INFO:     Will watch for changes in these directories: ['/app']
+multiagent-api  | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+multiagent-api  | INFO:     Started reloader process [1] using WatchFiles
+multiagent-api  | 2025-03-20 10:25:10 [INFO] multiagent.app.worker.celery_app: Using broker URL: redis://redis:6379/0
+multiagent-api  | 2025-03-20 10:25:10 [INFO] multiagent.app.worker.celery_app: Using backend URL: redis://redis:6379/0
+multiagent-api  | 2025-03-20 10:25:12 [INFO] multiagent.app.worker.queue: TaskQueue: Initializing task queue interface
+multiagent-api  | 2025-03-20 10:25:12 [INFO] multiagent.app.worker.queue: TaskQueue: Celery app initialized with broker: redis://redis:6379/0
+multiagent-api  | 2025-03-20 10:25:12 [INFO] multiagent.app.worker.queue: TaskQueue: Result backend: redis://redis:6379/0
+multiagent-api  | 2025-03-20 10:25:12 [INFO] multiagent.app.worker.queue: TaskQueue: Testing Celery broker connection (attempt 1/3)
+multiagent-api  | 2025-03-20 10:25:17 [INFO] multiagent.app.worker.queue: TaskQueue: Successfully connected to Celery broker
+multiagent-api  | 2025-03-20 10:25:17 [INFO] multiagent.app.monitoring.tracer: Langfuse tracer initialized successfully
+multiagent-api  | /usr/local/lib/python3.11/site-packages/pydantic/_migration.py:283: UserWarning: `pydantic.generics:GenericModel` has been moved to `pydantic.BaseModel`.
+multiagent-api  |   warnings.warn(f'`{import_path}` has been moved to `{new_location}`.')
+multiagent-api  | INFO:     Started server process [29]
+multiagent-api  | INFO:     Waiting for application startup.
+multiagent-api  | 2025-03-20 10:25:25 - multiagent.app.monitoring.metrics - INFO - Prometheus middleware initialized
+multiagent-api  | 2025-03-20 10:25:25 - multiagent.app.db.session - INFO - Available models:
+multiagent-api  | 2025-03-20 10:25:25 - multiagent.app.db.session - INFO - - ProviderConfig
+multiagent-api  | 2025-03-20 10:25:25 - multiagent.app.db.session - INFO - - ProviderCapabilities
+multiagent-api  | 2025-03-20 10:25:25 - multiagent.app.db.session - INFO - - ProviderPerformance
+multiagent-api  | 2025-03-20 10:25:25 - multiagent.app.db.session - INFO - - Result
+multiagent-api  | 2025-03-20 10:25:25 - multiagent.app.db.session - INFO - - AgentExecution
+multiagent-api  | 2025-03-20 10:25:25 - multiagent.app.db.session - INFO - - APIRequest
+multiagent-api  | 2025-03-20 10:25:25 - multiagent.app.db.session - INFO - - AgentMetrics
+multiagent-api  | 2025-03-20 10:25:25 - multiagent.app.db.session - WARNING - All existing database tables dropped
+multiagent-api  | 2025-03-20 10:25:25 - multiagent.app.db.session - INFO - Existing tables: []
+multiagent-api  | 2025-03-20 10:25:25 - multiagent.app.db.session - INFO - Existing indexes: set()
+multiagent-api  | 2025-03-20 10:25:25 - multiagent.app.db.session - INFO - Creating table: provider_configs
+multiagent-api  | 2025-03-20 10:25:25 - multiagent.app.db.session - INFO - Creating table: provider_capabilities
+multiagent-api  | 2025-03-20 10:25:25 - multiagent.app.db.session - INFO - Creating index: idx_provider_capabilities_provider_id_type
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - ERROR - Error creating index idx_provider_capabilities_provider_id_type: (psycopg2.errors.DuplicateTable) relation "idx_provider_capabilities_provider_id_type" already exists
+multiagent-api  | 
+multiagent-api  | [SQL: CREATE INDEX idx_provider_capabilities_provider_id_type ON provider_capabilities (provider_id, capability_type)]
+multiagent-api  | (Background on this error at: https://sqlalche.me/e/20/f405)
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - INFO - Creating table: provider_performances
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - INFO - Creating index: idx_provider_performances_provider_task
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - ERROR - Error creating index idx_provider_performances_provider_task: (psycopg2.errors.DuplicateTable) relation "idx_provider_performances_provider_task" already exists
+multiagent-api  | 
+multiagent-api  | [SQL: CREATE INDEX idx_provider_performances_provider_task ON provider_performances (provider_id, task_type)]
+multiagent-api  | (Background on this error at: https://sqlalche.me/e/20/f405)
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - INFO - Creating index: idx_provider_performances_recorded_at
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - ERROR - Error creating index idx_provider_performances_recorded_at: (psycopg2.errors.DuplicateTable) relation "idx_provider_performances_recorded_at" already exists
+multiagent-api  | 
+multiagent-api  | [SQL: CREATE INDEX idx_provider_performances_recorded_at ON provider_performances (recorded_at)]
+multiagent-api  | (Background on this error at: https://sqlalche.me/e/20/f405)
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - INFO - Creating table: results
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - INFO - Creating index: idx_results_status_created_at
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - ERROR - Error creating index idx_results_status_created_at: (psycopg2.errors.DuplicateTable) relation "idx_results_status_created_at" already exists
+multiagent-api  | 
+multiagent-api  | [SQL: CREATE INDEX idx_results_status_created_at ON results (status, created_at)]
+multiagent-api  | (Background on this error at: https://sqlalche.me/e/20/f405)
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - INFO - Creating index: idx_results_celery_task_id
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - ERROR - Error creating index idx_results_celery_task_id: (psycopg2.errors.DuplicateTable) relation "idx_results_celery_task_id" already exists
+multiagent-api  | 
+multiagent-api  | [SQL: CREATE INDEX idx_results_celery_task_id ON results (celery_task_id)]
+multiagent-api  | (Background on this error at: https://sqlalche.me/e/20/f405)
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - INFO - Creating index: idx_results_query_workflow
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - ERROR - Error creating index idx_results_query_workflow: (psycopg2.errors.DuplicateTable) relation "idx_results_query_workflow" already exists
+multiagent-api  | 
+multiagent-api  | [SQL: CREATE INDEX idx_results_query_workflow ON results (query, workflow)]
+multiagent-api  | (Background on this error at: https://sqlalche.me/e/20/f405)
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - INFO - Creating table: agent_executions
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - INFO - Creating table: api_requests
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - INFO - Creating index: idx_api_requests_method_path
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - ERROR - Error creating index idx_api_requests_method_path: (psycopg2.errors.DuplicateTable) relation "idx_api_requests_method_path" already exists
+multiagent-api  | 
+multiagent-api  | [SQL: CREATE INDEX idx_api_requests_method_path ON api_requests (method, path)]
+multiagent-api  | (Background on this error at: https://sqlalche.me/e/20/f405)
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - INFO - Creating index: idx_api_requests_created_at
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - ERROR - Error creating index idx_api_requests_created_at: (psycopg2.errors.DuplicateTable) relation "idx_api_requests_created_at" already exists
+multiagent-api  | 
+multiagent-api  | [SQL: CREATE INDEX idx_api_requests_created_at ON api_requests (created_at)]
+multiagent-api  | (Background on this error at: https://sqlalche.me/e/20/f405)
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - INFO - Creating table: agent_metrics
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - INFO - Creating index: idx_agent_metrics_agent_task
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - ERROR - Error creating index idx_agent_metrics_agent_task: (psycopg2.errors.DuplicateTable) relation "idx_agent_metrics_agent_task" already exists
+multiagent-api  | 
+multiagent-api  | [SQL: CREATE INDEX idx_agent_metrics_agent_task ON agent_metrics (agent_id, task_type)]
+multiagent-api  | (Background on this error at: https://sqlalche.me/e/20/f405)
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - INFO - Creating index: idx_agent_metrics_last_executed_at
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - ERROR - Error creating index idx_agent_metrics_last_executed_at: (psycopg2.errors.DuplicateTable) relation "idx_agent_metrics_last_executed_at" already exists
+multiagent-api  | 
+multiagent-api  | [SQL: CREATE INDEX idx_agent_metrics_last_executed_at ON agent_metrics (last_executed_at)]
+multiagent-api  | (Background on this error at: https://sqlalche.me/e/20/f405)
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.db.session - INFO - Database initialization complete
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.main - INFO - Database initialized successfully
+multiagent-api  | 2025-03-20 10:25:26 - multiagent.app.main - INFO - Initialized default providers
+multiagent-api  | INFO:     Application startup complete.
+multiagent-api  | 2025-03-20 10:25:53 - multiagent.app.api.query - INFO - Submitting query: nelly... (task_id: 7ddbccc4-8b9a-4b97-8fab-63e4db8c4330)
+multiagent-api  | 2025-03-20 10:25:53 - multiagent.app.api.query - INFO - About to submit task with: workflow_id=research
+multiagent-api  | 2025-03-20 10:25:53 - multiagent.app.api.query - INFO - Task submitted successfully. Task ID from result: 6fb94830-46ef-4a0d-a5f6-cc5c2de8845d
+multiagent-api  | INFO:     172.18.0.1:51040 - "POST /api/query HTTP/1.1" 200 OK
+multiagent-api  | 2025-03-20 10:28:01 - multiagent.app.api.query - INFO - Submitting query: jesus... (task_id: 29834e16-81a4-44bf-9b25-297d9b165456)
+multiagent-api  | 2025-03-20 10:28:01 - multiagent.app.api.query - INFO - About to submit task with: workflow_id=research
+multiagent-api  | 2025-03-20 10:28:01 - multiagent.app.api.query - INFO - Task submitted successfully. Task ID from result: 4cf0e9e7-af70-431d-87c7-86da1d996551
+multiagent-api  | INFO:     172.18.0.1:60616 - "POST /api/query HTTP/1.1" 200 OK

@@ -49,7 +49,7 @@ app.add_middleware(PrometheusMiddleware)
 async def startup_event():
     try:
         # Initialize database without dropping existing tables
-        init_db(drop_existing=False)
+        init_db(drop_existing=True)
 
         logger.info("Database initialized successfully")
 
