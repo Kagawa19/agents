@@ -1,0 +1,431 @@
+multiagent-worker  | 2025-03-20 12:24:24 [INFO] multiagent.app.worker.celery_app: Using broker URL: redis://redis:6379/0
+multiagent-worker  | 2025-03-20 12:24:24 [INFO] multiagent.app.worker.celery_app: Using backend URL: redis://redis:6379/0
+multiagent-worker  | 2025-03-20 12:26:26 [INFO] multiagent.app.worker.queue: TaskQueue: Initializing task queue interface
+multiagent-worker  | 2025-03-20 12:26:26 [INFO] multiagent.app.worker.queue: TaskQueue: Celery app initialized with broker: redis://redis:6379/0
+multiagent-worker  | 2025-03-20 12:26:26 [INFO] multiagent.app.worker.queue: TaskQueue: Result backend: redis://redis:6379/0
+multiagent-worker  | 2025-03-20 12:26:26 [INFO] multiagent.app.worker.queue: TaskQueue: Testing Celery broker connection (attempt 1/3)
+multiagent-worker  | 2025-03-20 12:26:31 [INFO] multiagent.app.worker.queue: TaskQueue: Successfully connected to Celery broker
+multiagent-worker  | /usr/local/lib/python3.11/site-packages/celery/platforms.py:829: SecurityWarning: You're running the worker with superuser privileges: this is
+multiagent-worker  | absolutely not recommended!
+multiagent-worker  | 
+multiagent-worker  | Please specify a different user using the --uid option.
+multiagent-worker  | 
+multiagent-worker  | User information: uid=0 euid=0 gid=0 egid=0
+multiagent-worker  | 
+multiagent-worker  |   warnings.warn(SecurityWarning(ROOT_DISCOURAGED.format(
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] multiagent.app.worker.celery_app: Initializing Celery worker
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] multiagent.app.worker.celery_app: Broker URL: redis://redis:6379/0
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] multiagent.app.worker.celery_app: Result backend: redis://redis:6379/0
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] multiagent.app.worker.celery_app: Hostname: f6a6ab15c081
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] multiagent.app.db.session: Available models:
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] multiagent.app.db.session: - ProviderConfig
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] multiagent.app.db.session: - ProviderCapabilities
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] multiagent.app.db.session: - ProviderPerformance
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] multiagent.app.db.session: - Result
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] multiagent.app.db.session: - AgentExecution
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] multiagent.app.db.session: - APIRequest
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] multiagent.app.db.session: - AgentMetrics
+multiagent-worker  | 2025-03-20 12:27:02,843 INFO sqlalchemy.engine.Engine select pg_catalog.version()
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: select pg_catalog.version()
+multiagent-worker  | 2025-03-20 12:27:02,844 INFO sqlalchemy.engine.Engine [raw sql] {}
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: [raw sql] {}
+multiagent-worker  | 2025-03-20 12:27:02,849 INFO sqlalchemy.engine.Engine select current_schema()
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: select current_schema()
+multiagent-worker  | 2025-03-20 12:27:02,849 INFO sqlalchemy.engine.Engine [raw sql] {}
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: [raw sql] {}
+multiagent-worker  | 2025-03-20 12:27:02,853 INFO sqlalchemy.engine.Engine show standard_conforming_strings
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: show standard_conforming_strings
+multiagent-worker  | 2025-03-20 12:27:02,854 INFO sqlalchemy.engine.Engine [raw sql] {}
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: [raw sql] {}
+multiagent-worker  | 2025-03-20 12:27:02,867 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:02,868 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.relname 
+multiagent-worker  | FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+multiagent-worker  | WHERE pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s]) AND pg_catalog.pg_class.relpersistence != %(relpersistence_1)s AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: SELECT pg_catalog.pg_class.relname 
+multiagent-worker  | FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+multiagent-worker  | WHERE pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s]) AND pg_catalog.pg_class.relpersistence != %(relpersistence_1)s AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s
+multiagent-worker  | 2025-03-20 12:27:02,868 INFO sqlalchemy.engine.Engine [generated in 0.00126s] {'param_1': 'r', 'param_2': 'p', 'relpersistence_1': 't', 'nspname_1': 'pg_catalog'}
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: [generated in 0.00126s] {'param_1': 'r', 'param_2': 'p', 'relpersistence_1': 't', 'nspname_1': 'pg_catalog'}
+multiagent-worker  | 2025-03-20 12:27:02,880 INFO sqlalchemy.engine.Engine ROLLBACK
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: ROLLBACK
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] multiagent.app.db.session: Existing tables: ['provider_configs', 'provider_capabilities', 'results', 'provider_performances', 'api_requests', 'agent_executions', 'agent_metrics']
+multiagent-worker  | 2025-03-20 12:27:02,886 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:02,887 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.oid, pg_catalog.pg_class.relname 
+multiagent-worker  | FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+multiagent-worker  | WHERE pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s AND pg_catalog.pg_class.relname IN (%(filter_names_1)s)
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: SELECT pg_catalog.pg_class.oid, pg_catalog.pg_class.relname 
+multiagent-worker  | FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+multiagent-worker  | WHERE pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s AND pg_catalog.pg_class.relname IN (%(filter_names_1)s)
+multiagent-worker  | 2025-03-20 12:27:02,889 INFO sqlalchemy.engine.Engine [generated in 0.00359s] {'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog', 'filter_names_1': 'provider_configs'}
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: [generated in 0.00359s] {'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog', 'filter_names_1': 'provider_configs'}
+multiagent-worker  | 2025-03-20 12:27:02,915 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_index.indrelid, cls_idx.relname AS relname_index, pg_catalog.pg_index.indisunique, pg_catalog.pg_constraint.conrelid IS NOT NULL AS has_constraint, pg_catalog.pg_index.indoption, cls_idx.reloptions, pg_catalog.pg_am.amname, CASE WHEN (pg_catalog.pg_index.indpred IS NOT NULL) THEN pg_catalog.pg_get_expr(pg_catalog.pg_index.indpred, pg_catalog.pg_index.indrelid) END AS filter_definition, pg_catalog.pg_index.indnkeyatts, false AS indnullsnotdistinct, idx_cols.elements, idx_cols.elements_is_expr 
+multiagent-worker  | FROM pg_catalog.pg_index JOIN pg_catalog.pg_class AS cls_idx ON pg_catalog.pg_index.indexrelid = cls_idx.oid JOIN pg_catalog.pg_am ON cls_idx.relam = pg_catalog.pg_am.oid LEFT OUTER JOIN (SELECT idx_attr.indexrelid AS indexrelid, min(idx_attr.indrelid) AS min_1, array_agg(idx_attr.element ORDER BY idx_attr.ord) AS elements, array_agg(idx_attr.is_expr ORDER BY idx_attr.ord) AS elements_is_expr 
+multiagent-worker  | FROM (SELECT idx.indexrelid AS indexrelid, idx.indrelid AS indrelid, idx.ord AS ord, CASE WHEN (idx.attnum = %(attnum_1)s) THEN pg_catalog.pg_get_indexdef(idx.indexrelid, idx.ord + %(ord_1)s, %(pg_get_indexdef_1)s) ELSE CAST(pg_catalog.pg_attribute.attname AS TEXT) END AS element, idx.attnum = %(attnum_2)s AS is_expr 
+multiagent-worker  | FROM (SELECT pg_catalog.pg_index.indexrelid AS indexrelid, pg_catalog.pg_index.indrelid AS indrelid, unnest(pg_catalog.pg_index.indkey) AS attnum, generate_subscripts(pg_catalog.pg_index.indkey, %(generate_subscripts_1)s) AS ord 
+multiagent-worker  | FROM pg_catalog.pg_index 
+multiagent-worker  | WHERE NOT pg_catalog.pg_index.indisprimary AND pg_catalog.pg_index.indrelid IN (%(oids_1)s)) AS idx LEFT OUTER JOIN pg_catalog.pg_attribute ON pg_catalog.pg_attribute.attnum = idx.attnum AND pg_catalog.pg_attribute.attrelid = idx.indrelid 
+multiagent-worker  | WHERE idx.indrelid IN (%(oids_1)s)) AS idx_attr GROUP BY idx_attr.indexrelid) AS idx_cols ON pg_catalog.pg_index.indexrelid = idx_cols.indexrelid LEFT OUTER JOIN pg_catalog.pg_constraint ON pg_catalog.pg_index.indrelid = pg_catalog.pg_constraint.conrelid AND pg_catalog.pg_index.indexrelid = pg_catalog.pg_constraint.conindid AND pg_catalog.pg_constraint.contype = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s]) 
+multiagent-worker  | WHERE pg_catalog.pg_index.indrelid IN (%(oids_1)s) AND NOT pg_catalog.pg_index.indisprimary ORDER BY pg_catalog.pg_index.indrelid, cls_idx.relname
+multiagent-worker  | 2025-03-20 12:27:02,916 INFO sqlalchemy.engine.Engine [generated in 0.00096s] {'attnum_1': 0, 'ord_1': 1, 'pg_get_indexdef_1': True, 'attnum_2': 0, 'generate_subscripts_1': 1, 'param_1': 'p', 'param_2': 'u', 'param_3': 'x', 'oids_1': 16386}
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: SELECT pg_catalog.pg_index.indrelid, cls_idx.relname AS relname_index, pg_catalog.pg_index.indisunique, pg_catalog.pg_constraint.conrelid IS NOT NULL AS has_constraint, pg_catalog.pg_index.indoption, cls_idx.reloptions, pg_catalog.pg_am.amname, CASE WHEN (pg_catalog.pg_index.indpred IS NOT NULL) THEN pg_catalog.pg_get_expr(pg_catalog.pg_index.indpred, pg_catalog.pg_index.indrelid) END AS filter_definition, pg_catalog.pg_index.indnkeyatts, false AS indnullsnotdistinct, idx_cols.elements, idx_cols.elements_is_expr 
+multiagent-worker  | FROM pg_catalog.pg_index JOIN pg_catalog.pg_class AS cls_idx ON pg_catalog.pg_index.indexrelid = cls_idx.oid JOIN pg_catalog.pg_am ON cls_idx.relam = pg_catalog.pg_am.oid LEFT OUTER JOIN (SELECT idx_attr.indexrelid AS indexrelid, min(idx_attr.indrelid) AS min_1, array_agg(idx_attr.element ORDER BY idx_attr.ord) AS elements, array_agg(idx_attr.is_expr ORDER BY idx_attr.ord) AS elements_is_expr 
+multiagent-worker  | FROM (SELECT idx.indexrelid AS indexrelid, idx.indrelid AS indrelid, idx.ord AS ord, CASE WHEN (idx.attnum = %(attnum_1)s) THEN pg_catalog.pg_get_indexdef(idx.indexrelid, idx.ord + %(ord_1)s, %(pg_get_indexdef_1)s) ELSE CAST(pg_catalog.pg_attribute.attname AS TEXT) END AS element, idx.attnum = %(attnum_2)s AS is_expr 
+multiagent-worker  | FROM (SELECT pg_catalog.pg_index.indexrelid AS indexrelid, pg_catalog.pg_index.indrelid AS indrelid, unnest(pg_catalog.pg_index.indkey) AS attnum, generate_subscripts(pg_catalog.pg_index.indkey, %(generate_subscripts_1)s) AS ord 
+multiagent-worker  | FROM pg_catalog.pg_index 
+multiagent-worker  | WHERE NOT pg_catalog.pg_index.indisprimary AND pg_catalog.pg_index.indrelid IN (%(oids_1)s)) AS idx LEFT OUTER JOIN pg_catalog.pg_attribute ON pg_catalog.pg_attribute.attnum = idx.attnum AND pg_catalog.pg_attribute.attrelid = idx.indrelid 
+multiagent-worker  | WHERE idx.indrelid IN (%(oids_1)s)) AS idx_attr GROUP BY idx_attr.indexrelid) AS idx_cols ON pg_catalog.pg_index.indexrelid = idx_cols.indexrelid LEFT OUTER JOIN pg_catalog.pg_constraint ON pg_catalog.pg_index.indrelid = pg_catalog.pg_constraint.conrelid AND pg_catalog.pg_index.indexrelid = pg_catalog.pg_constraint.conindid AND pg_catalog.pg_constraint.contype = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s]) 
+multiagent-worker  | WHERE pg_catalog.pg_index.indrelid IN (%(oids_1)s) AND NOT pg_catalog.pg_index.indisprimary ORDER BY pg_catalog.pg_index.indrelid, cls_idx.relname
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: [generated in 0.00096s] {'attnum_1': 0, 'ord_1': 1, 'pg_get_indexdef_1': True, 'attnum_2': 0, 'generate_subscripts_1': 1, 'param_1': 'p', 'param_2': 'u', 'param_3': 'x', 'oids_1': 16386}
+multiagent-worker  | 2025-03-20 12:27:02,939 INFO sqlalchemy.engine.Engine ROLLBACK
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: ROLLBACK
+multiagent-worker  | 2025-03-20 12:27:02,941 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:02,942 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.oid, pg_catalog.pg_class.relname 
+multiagent-worker  | FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+multiagent-worker  | WHERE pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s AND pg_catalog.pg_class.relname IN (%(filter_names_1)s)
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: SELECT pg_catalog.pg_class.oid, pg_catalog.pg_class.relname 
+multiagent-worker  | FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+multiagent-worker  | WHERE pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s AND pg_catalog.pg_class.relname IN (%(filter_names_1)s)
+multiagent-worker  | 2025-03-20 12:27:02,943 INFO sqlalchemy.engine.Engine [cached since 0.05751s ago] {'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog', 'filter_names_1': 'provider_capabilities'}
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: [cached since 0.05751s ago] {'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog', 'filter_names_1': 'provider_capabilities'}
+multiagent-worker  | 2025-03-20 12:27:02,950 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_index.indrelid, cls_idx.relname AS relname_index, pg_catalog.pg_index.indisunique, pg_catalog.pg_constraint.conrelid IS NOT NULL AS has_constraint, pg_catalog.pg_index.indoption, cls_idx.reloptions, pg_catalog.pg_am.amname, CASE WHEN (pg_catalog.pg_index.indpred IS NOT NULL) THEN pg_catalog.pg_get_expr(pg_catalog.pg_index.indpred, pg_catalog.pg_index.indrelid) END AS filter_definition, pg_catalog.pg_index.indnkeyatts, false AS indnullsnotdistinct, idx_cols.elements, idx_cols.elements_is_expr 
+multiagent-worker  | FROM pg_catalog.pg_index JOIN pg_catalog.pg_class AS cls_idx ON pg_catalog.pg_index.indexrelid = cls_idx.oid JOIN pg_catalog.pg_am ON cls_idx.relam = pg_catalog.pg_am.oid LEFT OUTER JOIN (SELECT idx_attr.indexrelid AS indexrelid, min(idx_attr.indrelid) AS min_1, array_agg(idx_attr.element ORDER BY idx_attr.ord) AS elements, array_agg(idx_attr.is_expr ORDER BY idx_attr.ord) AS elements_is_expr 
+multiagent-worker  | FROM (SELECT idx.indexrelid AS indexrelid, idx.indrelid AS indrelid, idx.ord AS ord, CASE WHEN (idx.attnum = %(attnum_1)s) THEN pg_catalog.pg_get_indexdef(idx.indexrelid, idx.ord + %(ord_1)s, %(pg_get_indexdef_1)s) ELSE CAST(pg_catalog.pg_attribute.attname AS TEXT) END AS element, idx.attnum = %(attnum_2)s AS is_expr 
+multiagent-worker  | FROM (SELECT pg_catalog.pg_index.indexrelid AS indexrelid, pg_catalog.pg_index.indrelid AS indrelid, unnest(pg_catalog.pg_index.indkey) AS attnum, generate_subscripts(pg_catalog.pg_index.indkey, %(generate_subscripts_1)s) AS ord 
+multiagent-worker  | FROM pg_catalog.pg_index 
+multiagent-worker  | WHERE NOT pg_catalog.pg_index.indisprimary AND pg_catalog.pg_index.indrelid IN (%(oids_1)s)) AS idx LEFT OUTER JOIN pg_catalog.pg_attribute ON pg_catalog.pg_attribute.attnum = idx.attnum AND pg_catalog.pg_attribute.attrelid = idx.indrelid 
+multiagent-worker  | WHERE idx.indrelid IN (%(oids_1)s)) AS idx_attr GROUP BY idx_attr.indexrelid) AS idx_cols ON pg_catalog.pg_index.indexrelid = idx_cols.indexrelid LEFT OUTER JOIN pg_catalog.pg_constraint ON pg_catalog.pg_index.indrelid = pg_catalog.pg_constraint.conrelid AND pg_catalog.pg_index.indexrelid = pg_catalog.pg_constraint.conindid AND pg_catalog.pg_constraint.contype = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s]) 
+multiagent-worker  | WHERE pg_catalog.pg_index.indrelid IN (%(oids_1)s) AND NOT pg_catalog.pg_index.indisprimary ORDER BY pg_catalog.pg_index.indrelid, cls_idx.relname
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: SELECT pg_catalog.pg_index.indrelid, cls_idx.relname AS relname_index, pg_catalog.pg_index.indisunique, pg_catalog.pg_constraint.conrelid IS NOT NULL AS has_constraint, pg_catalog.pg_index.indoption, cls_idx.reloptions, pg_catalog.pg_am.amname, CASE WHEN (pg_catalog.pg_index.indpred IS NOT NULL) THEN pg_catalog.pg_get_expr(pg_catalog.pg_index.indpred, pg_catalog.pg_index.indrelid) END AS filter_definition, pg_catalog.pg_index.indnkeyatts, false AS indnullsnotdistinct, idx_cols.elements, idx_cols.elements_is_expr 
+multiagent-worker  | FROM pg_catalog.pg_index JOIN pg_catalog.pg_class AS cls_idx ON pg_catalog.pg_index.indexrelid = cls_idx.oid JOIN pg_catalog.pg_am ON cls_idx.relam = pg_catalog.pg_am.oid LEFT OUTER JOIN (SELECT idx_attr.indexrelid AS indexrelid, min(idx_attr.indrelid) AS min_1, array_agg(idx_attr.element ORDER BY idx_attr.ord) AS elements, array_agg(idx_attr.is_expr ORDER BY idx_attr.ord) AS elements_is_expr 
+multiagent-worker  | FROM (SELECT idx.indexrelid AS indexrelid, idx.indrelid AS indrelid, idx.ord AS ord, CASE WHEN (idx.attnum = %(attnum_1)s) THEN pg_catalog.pg_get_indexdef(idx.indexrelid, idx.ord + %(ord_1)s, %(pg_get_indexdef_1)s) ELSE CAST(pg_catalog.pg_attribute.attname AS TEXT) END AS element, idx.attnum = %(attnum_2)s AS is_expr 
+multiagent-worker  | FROM (SELECT pg_catalog.pg_index.indexrelid AS indexrelid, pg_catalog.pg_index.indrelid AS indrelid, unnest(pg_catalog.pg_index.indkey) AS attnum, generate_subscripts(pg_catalog.pg_index.indkey, %(generate_subscripts_1)s) AS ord 
+multiagent-worker  | FROM pg_catalog.pg_index 
+multiagent-worker  | WHERE NOT pg_catalog.pg_index.indisprimary AND pg_catalog.pg_index.indrelid IN (%(oids_1)s)) AS idx LEFT OUTER JOIN pg_catalog.pg_attribute ON pg_catalog.pg_attribute.attnum = idx.attnum AND pg_catalog.pg_attribute.attrelid = idx.indrelid 
+multiagent-worker  | WHERE idx.indrelid IN (%(oids_1)s)) AS idx_attr GROUP BY idx_attr.indexrelid) AS idx_cols ON pg_catalog.pg_index.indexrelid = idx_cols.indexrelid LEFT OUTER JOIN pg_catalog.pg_constraint ON pg_catalog.pg_index.indrelid = pg_catalog.pg_constraint.conrelid AND pg_catalog.pg_index.indexrelid = pg_catalog.pg_constraint.conindid AND pg_catalog.pg_constraint.contype = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s]) 
+multiagent-worker  | WHERE pg_catalog.pg_index.indrelid IN (%(oids_1)s) AND NOT pg_catalog.pg_index.indisprimary ORDER BY pg_catalog.pg_index.indrelid, cls_idx.relname
+multiagent-worker  | 2025-03-20 12:27:02,951 INFO sqlalchemy.engine.Engine [cached since 0.036s ago] {'attnum_1': 0, 'ord_1': 1, 'pg_get_indexdef_1': True, 'attnum_2': 0, 'generate_subscripts_1': 1, 'param_1': 'p', 'param_2': 'u', 'param_3': 'x', 'oids_1': 16397}
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: [cached since 0.036s ago] {'attnum_1': 0, 'ord_1': 1, 'pg_get_indexdef_1': True, 'attnum_2': 0, 'generate_subscripts_1': 1, 'param_1': 'p', 'param_2': 'u', 'param_3': 'x', 'oids_1': 16397}
+multiagent-worker  | 2025-03-20 12:27:02,959 INFO sqlalchemy.engine.Engine ROLLBACK
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: ROLLBACK
+multiagent-worker  | 2025-03-20 12:27:02,961 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:02,961 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.oid, pg_catalog.pg_class.relname 
+multiagent-worker  | FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+multiagent-worker  | WHERE pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s AND pg_catalog.pg_class.relname IN (%(filter_names_1)s)
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: SELECT pg_catalog.pg_class.oid, pg_catalog.pg_class.relname 
+multiagent-worker  | FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+multiagent-worker  | WHERE pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s AND pg_catalog.pg_class.relname IN (%(filter_names_1)s)
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: [cached since 0.07632s ago] {'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog', 'filter_names_1': 'results'}
+multiagent-worker  | 2025-03-20 12:27:02,962 INFO sqlalchemy.engine.Engine [cached since 0.07632s ago] {'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog', 'filter_names_1': 'results'}
+multiagent-worker  | 2025-03-20 12:27:02,965 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_index.indrelid, cls_idx.relname AS relname_index, pg_catalog.pg_index.indisunique, pg_catalog.pg_constraint.conrelid IS NOT NULL AS has_constraint, pg_catalog.pg_index.indoption, cls_idx.reloptions, pg_catalog.pg_am.amname, CASE WHEN (pg_catalog.pg_index.indpred IS NOT NULL) THEN pg_catalog.pg_get_expr(pg_catalog.pg_index.indpred, pg_catalog.pg_index.indrelid) END AS filter_definition, pg_catalog.pg_index.indnkeyatts, false AS indnullsnotdistinct, idx_cols.elements, idx_cols.elements_is_expr 
+multiagent-worker  | FROM pg_catalog.pg_index JOIN pg_catalog.pg_class AS cls_idx ON pg_catalog.pg_index.indexrelid = cls_idx.oid JOIN pg_catalog.pg_am ON cls_idx.relam = pg_catalog.pg_am.oid LEFT OUTER JOIN (SELECT idx_attr.indexrelid AS indexrelid, min(idx_attr.indrelid) AS min_1, array_agg(idx_attr.element ORDER BY idx_attr.ord) AS elements, array_agg(idx_attr.is_expr ORDER BY idx_attr.ord) AS elements_is_expr 
+multiagent-worker  | FROM (SELECT idx.indexrelid AS indexrelid, idx.indrelid AS indrelid, idx.ord AS ord, CASE WHEN (idx.attnum = %(attnum_1)s) THEN pg_catalog.pg_get_indexdef(idx.indexrelid, idx.ord + %(ord_1)s, %(pg_get_indexdef_1)s) ELSE CAST(pg_catalog.pg_attribute.attname AS TEXT) END AS element, idx.attnum = %(attnum_2)s AS is_expr 
+multiagent-worker  | FROM (SELECT pg_catalog.pg_index.indexrelid AS indexrelid, pg_catalog.pg_index.indrelid AS indrelid, unnest(pg_catalog.pg_index.indkey) AS attnum, generate_subscripts(pg_catalog.pg_index.indkey, %(generate_subscripts_1)s) AS ord 
+multiagent-worker  | FROM pg_catalog.pg_index 
+multiagent-worker  | WHERE NOT pg_catalog.pg_index.indisprimary AND pg_catalog.pg_index.indrelid IN (%(oids_1)s)) AS idx LEFT OUTER JOIN pg_catalog.pg_attribute ON pg_catalog.pg_attribute.attnum = idx.attnum AND pg_catalog.pg_attribute.attrelid = idx.indrelid 
+multiagent-worker  | WHERE idx.indrelid IN (%(oids_1)s)) AS idx_attr GROUP BY idx_attr.indexrelid) AS idx_cols ON pg_catalog.pg_index.indexrelid = idx_cols.indexrelid LEFT OUTER JOIN pg_catalog.pg_constraint ON pg_catalog.pg_index.indrelid = pg_catalog.pg_constraint.conrelid AND pg_catalog.pg_index.indexrelid = pg_catalog.pg_constraint.conindid AND pg_catalog.pg_constraint.contype = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s]) 
+multiagent-worker  | WHERE pg_catalog.pg_index.indrelid IN (%(oids_1)s) AND NOT pg_catalog.pg_index.indisprimary ORDER BY pg_catalog.pg_index.indrelid, cls_idx.relname
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: SELECT pg_catalog.pg_index.indrelid, cls_idx.relname AS relname_index, pg_catalog.pg_index.indisunique, pg_catalog.pg_constraint.conrelid IS NOT NULL AS has_constraint, pg_catalog.pg_index.indoption, cls_idx.reloptions, pg_catalog.pg_am.amname, CASE WHEN (pg_catalog.pg_index.indpred IS NOT NULL) THEN pg_catalog.pg_get_expr(pg_catalog.pg_index.indpred, pg_catalog.pg_index.indrelid) END AS filter_definition, pg_catalog.pg_index.indnkeyatts, false AS indnullsnotdistinct, idx_cols.elements, idx_cols.elements_is_expr 
+multiagent-worker  | FROM pg_catalog.pg_index JOIN pg_catalog.pg_class AS cls_idx ON pg_catalog.pg_index.indexrelid = cls_idx.oid JOIN pg_catalog.pg_am ON cls_idx.relam = pg_catalog.pg_am.oid LEFT OUTER JOIN (SELECT idx_attr.indexrelid AS indexrelid, min(idx_attr.indrelid) AS min_1, array_agg(idx_attr.element ORDER BY idx_attr.ord) AS elements, array_agg(idx_attr.is_expr ORDER BY idx_attr.ord) AS elements_is_expr 
+multiagent-worker  | FROM (SELECT idx.indexrelid AS indexrelid, idx.indrelid AS indrelid, idx.ord AS ord, CASE WHEN (idx.attnum = %(attnum_1)s) THEN pg_catalog.pg_get_indexdef(idx.indexrelid, idx.ord + %(ord_1)s, %(pg_get_indexdef_1)s) ELSE CAST(pg_catalog.pg_attribute.attname AS TEXT) END AS element, idx.attnum = %(attnum_2)s AS is_expr 
+multiagent-worker  | FROM (SELECT pg_catalog.pg_index.indexrelid AS indexrelid, pg_catalog.pg_index.indrelid AS indrelid, unnest(pg_catalog.pg_index.indkey) AS attnum, generate_subscripts(pg_catalog.pg_index.indkey, %(generate_subscripts_1)s) AS ord 
+multiagent-worker  | FROM pg_catalog.pg_index 
+multiagent-worker  | WHERE NOT pg_catalog.pg_index.indisprimary AND pg_catalog.pg_index.indrelid IN (%(oids_1)s)) AS idx LEFT OUTER JOIN pg_catalog.pg_attribute ON pg_catalog.pg_attribute.attnum = idx.attnum AND pg_catalog.pg_attribute.attrelid = idx.indrelid 
+multiagent-worker  | WHERE idx.indrelid IN (%(oids_1)s)) AS idx_attr GROUP BY idx_attr.indexrelid) AS idx_cols ON pg_catalog.pg_index.indexrelid = idx_cols.indexrelid LEFT OUTER JOIN pg_catalog.pg_constraint ON pg_catalog.pg_index.indrelid = pg_catalog.pg_constraint.conrelid AND pg_catalog.pg_index.indexrelid = pg_catalog.pg_constraint.conindid AND pg_catalog.pg_constraint.contype = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s]) 
+multiagent-worker  | WHERE pg_catalog.pg_index.indrelid IN (%(oids_1)s) AND NOT pg_catalog.pg_index.indisprimary ORDER BY pg_catalog.pg_index.indrelid, cls_idx.relname
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: [cached since 0.05016s ago] {'attnum_1': 0, 'ord_1': 1, 'pg_get_indexdef_1': True, 'attnum_2': 0, 'generate_subscripts_1': 1, 'param_1': 'p', 'param_2': 'u', 'param_3': 'x', 'oids_1': 16428}
+multiagent-worker  | 2025-03-20 12:27:02,965 INFO sqlalchemy.engine.Engine [cached since 0.05016s ago] {'attnum_1': 0, 'ord_1': 1, 'pg_get_indexdef_1': True, 'attnum_2': 0, 'generate_subscripts_1': 1, 'param_1': 'p', 'param_2': 'u', 'param_3': 'x', 'oids_1': 16428}
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: ROLLBACK
+multiagent-worker  | 2025-03-20 12:27:02,970 INFO sqlalchemy.engine.Engine ROLLBACK
+multiagent-worker  | 2025-03-20 12:27:02,972 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:02,973 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.oid, pg_catalog.pg_class.relname 
+multiagent-worker  | FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+multiagent-worker  | WHERE pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s AND pg_catalog.pg_class.relname IN (%(filter_names_1)s)
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: SELECT pg_catalog.pg_class.oid, pg_catalog.pg_class.relname 
+multiagent-worker  | FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+multiagent-worker  | WHERE pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s AND pg_catalog.pg_class.relname IN (%(filter_names_1)s)
+multiagent-worker  | 2025-03-20 12:27:02,974 INFO sqlalchemy.engine.Engine [cached since 0.08833s ago] {'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog', 'filter_names_1': 'provider_performances'}
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: [cached since 0.08833s ago] {'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog', 'filter_names_1': 'provider_performances'}
+multiagent-worker  | 2025-03-20 12:27:02,976 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_index.indrelid, cls_idx.relname AS relname_index, pg_catalog.pg_index.indisunique, pg_catalog.pg_constraint.conrelid IS NOT NULL AS has_constraint, pg_catalog.pg_index.indoption, cls_idx.reloptions, pg_catalog.pg_am.amname, CASE WHEN (pg_catalog.pg_index.indpred IS NOT NULL) THEN pg_catalog.pg_get_expr(pg_catalog.pg_index.indpred, pg_catalog.pg_index.indrelid) END AS filter_definition, pg_catalog.pg_index.indnkeyatts, false AS indnullsnotdistinct, idx_cols.elements, idx_cols.elements_is_expr 
+multiagent-worker  | FROM pg_catalog.pg_index JOIN pg_catalog.pg_class AS cls_idx ON pg_catalog.pg_index.indexrelid = cls_idx.oid JOIN pg_catalog.pg_am ON cls_idx.relam = pg_catalog.pg_am.oid LEFT OUTER JOIN (SELECT idx_attr.indexrelid AS indexrelid, min(idx_attr.indrelid) AS min_1, array_agg(idx_attr.element ORDER BY idx_attr.ord) AS elements, array_agg(idx_attr.is_expr ORDER BY idx_attr.ord) AS elements_is_expr 
+multiagent-worker  | FROM (SELECT idx.indexrelid AS indexrelid, idx.indrelid AS indrelid, idx.ord AS ord, CASE WHEN (idx.attnum = %(attnum_1)s) THEN pg_catalog.pg_get_indexdef(idx.indexrelid, idx.ord + %(ord_1)s, %(pg_get_indexdef_1)s) ELSE CAST(pg_catalog.pg_attribute.attname AS TEXT) END AS element, idx.attnum = %(attnum_2)s AS is_expr 
+multiagent-worker  | FROM (SELECT pg_catalog.pg_index.indexrelid AS indexrelid, pg_catalog.pg_index.indrelid AS indrelid, unnest(pg_catalog.pg_index.indkey) AS attnum, generate_subscripts(pg_catalog.pg_index.indkey, %(generate_subscripts_1)s) AS ord 
+multiagent-worker  | FROM pg_catalog.pg_index 
+multiagent-worker  | WHERE NOT pg_catalog.pg_index.indisprimary AND pg_catalog.pg_index.indrelid IN (%(oids_1)s)) AS idx LEFT OUTER JOIN pg_catalog.pg_attribute ON pg_catalog.pg_attribute.attnum = idx.attnum AND pg_catalog.pg_attribute.attrelid = idx.indrelid 
+multiagent-worker  | WHERE idx.indrelid IN (%(oids_1)s)) AS idx_attr GROUP BY idx_attr.indexrelid) AS idx_cols ON pg_catalog.pg_index.indexrelid = idx_cols.indexrelid LEFT OUTER JOIN pg_catalog.pg_constraint ON pg_catalog.pg_index.indrelid = pg_catalog.pg_constraint.conrelid AND pg_catalog.pg_index.indexrelid = pg_catalog.pg_constraint.conindid AND pg_catalog.pg_constraint.contype = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s]) 
+multiagent-worker  | WHERE pg_catalog.pg_index.indrelid IN (%(oids_1)s) AND NOT pg_catalog.pg_index.indisprimary ORDER BY pg_catalog.pg_index.indrelid, cls_idx.relname
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: SELECT pg_catalog.pg_index.indrelid, cls_idx.relname AS relname_index, pg_catalog.pg_index.indisunique, pg_catalog.pg_constraint.conrelid IS NOT NULL AS has_constraint, pg_catalog.pg_index.indoption, cls_idx.reloptions, pg_catalog.pg_am.amname, CASE WHEN (pg_catalog.pg_index.indpred IS NOT NULL) THEN pg_catalog.pg_get_expr(pg_catalog.pg_index.indpred, pg_catalog.pg_index.indrelid) END AS filter_definition, pg_catalog.pg_index.indnkeyatts, false AS indnullsnotdistinct, idx_cols.elements, idx_cols.elements_is_expr 
+multiagent-worker  | FROM pg_catalog.pg_index JOIN pg_catalog.pg_class AS cls_idx ON pg_catalog.pg_index.indexrelid = cls_idx.oid JOIN pg_catalog.pg_am ON cls_idx.relam = pg_catalog.pg_am.oid LEFT OUTER JOIN (SELECT idx_attr.indexrelid AS indexrelid, min(idx_attr.indrelid) AS min_1, array_agg(idx_attr.element ORDER BY idx_attr.ord) AS elements, array_agg(idx_attr.is_expr ORDER BY idx_attr.ord) AS elements_is_expr 
+multiagent-worker  | FROM (SELECT idx.indexrelid AS indexrelid, idx.indrelid AS indrelid, idx.ord AS ord, CASE WHEN (idx.attnum = %(attnum_1)s) THEN pg_catalog.pg_get_indexdef(idx.indexrelid, idx.ord + %(ord_1)s, %(pg_get_indexdef_1)s) ELSE CAST(pg_catalog.pg_attribute.attname AS TEXT) END AS element, idx.attnum = %(attnum_2)s AS is_expr 
+multiagent-worker  | FROM (SELECT pg_catalog.pg_index.indexrelid AS indexrelid, pg_catalog.pg_index.indrelid AS indrelid, unnest(pg_catalog.pg_index.indkey) AS attnum, generate_subscripts(pg_catalog.pg_index.indkey, %(generate_subscripts_1)s) AS ord 
+multiagent-worker  | FROM pg_catalog.pg_index 
+multiagent-worker  | WHERE NOT pg_catalog.pg_index.indisprimary AND pg_catalog.pg_index.indrelid IN (%(oids_1)s)) AS idx LEFT OUTER JOIN pg_catalog.pg_attribute ON pg_catalog.pg_attribute.attnum = idx.attnum AND pg_catalog.pg_attribute.attrelid = idx.indrelid 
+multiagent-worker  | WHERE idx.indrelid IN (%(oids_1)s)) AS idx_attr GROUP BY idx_attr.indexrelid) AS idx_cols ON pg_catalog.pg_index.indexrelid = idx_cols.indexrelid LEFT OUTER JOIN pg_catalog.pg_constraint ON pg_catalog.pg_index.indrelid = pg_catalog.pg_constraint.conrelid AND pg_catalog.pg_index.indexrelid = pg_catalog.pg_constraint.conindid AND pg_catalog.pg_constraint.contype = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s]) 
+multiagent-worker  | WHERE pg_catalog.pg_index.indrelid IN (%(oids_1)s) AND NOT pg_catalog.pg_index.indisprimary ORDER BY pg_catalog.pg_index.indrelid, cls_idx.relname
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: [cached since 0.06206s ago] {'attnum_1': 0, 'ord_1': 1, 'pg_get_indexdef_1': True, 'attnum_2': 0, 'generate_subscripts_1': 1, 'param_1': 'p', 'param_2': 'u', 'param_3': 'x', 'oids_1': 16412}
+multiagent-worker  | 2025-03-20 12:27:02,977 INFO sqlalchemy.engine.Engine [cached since 0.06206s ago] {'attnum_1': 0, 'ord_1': 1, 'pg_get_indexdef_1': True, 'attnum_2': 0, 'generate_subscripts_1': 1, 'param_1': 'p', 'param_2': 'u', 'param_3': 'x', 'oids_1': 16412}
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: ROLLBACK
+multiagent-worker  | 2025-03-20 12:27:02,982 INFO sqlalchemy.engine.Engine ROLLBACK
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:02,985 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: SELECT pg_catalog.pg_class.oid, pg_catalog.pg_class.relname 
+multiagent-worker  | FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+multiagent-worker  | WHERE pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s AND pg_catalog.pg_class.relname IN (%(filter_names_1)s)
+multiagent-worker  | 2025-03-20 12:27:02,985 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.oid, pg_catalog.pg_class.relname 
+multiagent-worker  | FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+multiagent-worker  | WHERE pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s AND pg_catalog.pg_class.relname IN (%(filter_names_1)s)
+multiagent-worker  | 2025-03-20 12:27:02,987 INFO sqlalchemy.engine.Engine [cached since 0.1015s ago] {'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog', 'filter_names_1': 'api_requests'}
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: [cached since 0.1015s ago] {'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog', 'filter_names_1': 'api_requests'}
+multiagent-worker  | 2025-03-20 12:27:02,989 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_index.indrelid, cls_idx.relname AS relname_index, pg_catalog.pg_index.indisunique, pg_catalog.pg_constraint.conrelid IS NOT NULL AS has_constraint, pg_catalog.pg_index.indoption, cls_idx.reloptions, pg_catalog.pg_am.amname, CASE WHEN (pg_catalog.pg_index.indpred IS NOT NULL) THEN pg_catalog.pg_get_expr(pg_catalog.pg_index.indpred, pg_catalog.pg_index.indrelid) END AS filter_definition, pg_catalog.pg_index.indnkeyatts, false AS indnullsnotdistinct, idx_cols.elements, idx_cols.elements_is_expr 
+multiagent-worker  | FROM pg_catalog.pg_index JOIN pg_catalog.pg_class AS cls_idx ON pg_catalog.pg_index.indexrelid = cls_idx.oid JOIN pg_catalog.pg_am ON cls_idx.relam = pg_catalog.pg_am.oid LEFT OUTER JOIN (SELECT idx_attr.indexrelid AS indexrelid, min(idx_attr.indrelid) AS min_1, array_agg(idx_attr.element ORDER BY idx_attr.ord) AS elements, array_agg(idx_attr.is_expr ORDER BY idx_attr.ord) AS elements_is_expr 
+multiagent-worker  | FROM (SELECT idx.indexrelid AS indexrelid, idx.indrelid AS indrelid, idx.ord AS ord, CASE WHEN (idx.attnum = %(attnum_1)s) THEN pg_catalog.pg_get_indexdef(idx.indexrelid, idx.ord + %(ord_1)s, %(pg_get_indexdef_1)s) ELSE CAST(pg_catalog.pg_attribute.attname AS TEXT) END AS element, idx.attnum = %(attnum_2)s AS is_expr 
+multiagent-worker  | FROM (SELECT pg_catalog.pg_index.indexrelid AS indexrelid, pg_catalog.pg_index.indrelid AS indrelid, unnest(pg_catalog.pg_index.indkey) AS attnum, generate_subscripts(pg_catalog.pg_index.indkey, %(generate_subscripts_1)s) AS ord 
+multiagent-worker  | FROM pg_catalog.pg_index 
+multiagent-worker  | WHERE NOT pg_catalog.pg_index.indisprimary AND pg_catalog.pg_index.indrelid IN (%(oids_1)s)) AS idx LEFT OUTER JOIN pg_catalog.pg_attribute ON pg_catalog.pg_attribute.attnum = idx.attnum AND pg_catalog.pg_attribute.attrelid = idx.indrelid 
+multiagent-worker  | WHERE idx.indrelid IN (%(oids_1)s)) AS idx_attr GROUP BY idx_attr.indexrelid) AS idx_cols ON pg_catalog.pg_index.indexrelid = idx_cols.indexrelid LEFT OUTER JOIN pg_catalog.pg_constraint ON pg_catalog.pg_index.indrelid = pg_catalog.pg_constraint.conrelid AND pg_catalog.pg_index.indexrelid = pg_catalog.pg_constraint.conindid AND pg_catalog.pg_constraint.contype = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s]) 
+multiagent-worker  | WHERE pg_catalog.pg_index.indrelid IN (%(oids_1)s) AND NOT pg_catalog.pg_index.indisprimary ORDER BY pg_catalog.pg_index.indrelid, cls_idx.relname
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: SELECT pg_catalog.pg_index.indrelid, cls_idx.relname AS relname_index, pg_catalog.pg_index.indisunique, pg_catalog.pg_constraint.conrelid IS NOT NULL AS has_constraint, pg_catalog.pg_index.indoption, cls_idx.reloptions, pg_catalog.pg_am.amname, CASE WHEN (pg_catalog.pg_index.indpred IS NOT NULL) THEN pg_catalog.pg_get_expr(pg_catalog.pg_index.indpred, pg_catalog.pg_index.indrelid) END AS filter_definition, pg_catalog.pg_index.indnkeyatts, false AS indnullsnotdistinct, idx_cols.elements, idx_cols.elements_is_expr 
+multiagent-worker  | FROM pg_catalog.pg_index JOIN pg_catalog.pg_class AS cls_idx ON pg_catalog.pg_index.indexrelid = cls_idx.oid JOIN pg_catalog.pg_am ON cls_idx.relam = pg_catalog.pg_am.oid LEFT OUTER JOIN (SELECT idx_attr.indexrelid AS indexrelid, min(idx_attr.indrelid) AS min_1, array_agg(idx_attr.element ORDER BY idx_attr.ord) AS elements, array_agg(idx_attr.is_expr ORDER BY idx_attr.ord) AS elements_is_expr 
+multiagent-worker  | FROM (SELECT idx.indexrelid AS indexrelid, idx.indrelid AS indrelid, idx.ord AS ord, CASE WHEN (idx.attnum = %(attnum_1)s) THEN pg_catalog.pg_get_indexdef(idx.indexrelid, idx.ord + %(ord_1)s, %(pg_get_indexdef_1)s) ELSE CAST(pg_catalog.pg_attribute.attname AS TEXT) END AS element, idx.attnum = %(attnum_2)s AS is_expr 
+multiagent-worker  | FROM (SELECT pg_catalog.pg_index.indexrelid AS indexrelid, pg_catalog.pg_index.indrelid AS indrelid, unnest(pg_catalog.pg_index.indkey) AS attnum, generate_subscripts(pg_catalog.pg_index.indkey, %(generate_subscripts_1)s) AS ord 
+multiagent-worker  | FROM pg_catalog.pg_index 
+multiagent-worker  | WHERE NOT pg_catalog.pg_index.indisprimary AND pg_catalog.pg_index.indrelid IN (%(oids_1)s)) AS idx LEFT OUTER JOIN pg_catalog.pg_attribute ON pg_catalog.pg_attribute.attnum = idx.attnum AND pg_catalog.pg_attribute.attrelid = idx.indrelid 
+multiagent-worker  | WHERE idx.indrelid IN (%(oids_1)s)) AS idx_attr GROUP BY idx_attr.indexrelid) AS idx_cols ON pg_catalog.pg_index.indexrelid = idx_cols.indexrelid LEFT OUTER JOIN pg_catalog.pg_constraint ON pg_catalog.pg_index.indrelid = pg_catalog.pg_constraint.conrelid AND pg_catalog.pg_index.indexrelid = pg_catalog.pg_constraint.conindid AND pg_catalog.pg_constraint.contype = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s]) 
+multiagent-worker  | WHERE pg_catalog.pg_index.indrelid IN (%(oids_1)s) AND NOT pg_catalog.pg_index.indisprimary ORDER BY pg_catalog.pg_index.indrelid, cls_idx.relname
+multiagent-worker  | 2025-03-20 12:27:02,990 INFO sqlalchemy.engine.Engine [cached since 0.07512s ago] {'attnum_1': 0, 'ord_1': 1, 'pg_get_indexdef_1': True, 'attnum_2': 0, 'generate_subscripts_1': 1, 'param_1': 'p', 'param_2': 'u', 'param_3': 'x', 'oids_1': 16456}
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: [cached since 0.07512s ago] {'attnum_1': 0, 'ord_1': 1, 'pg_get_indexdef_1': True, 'attnum_2': 0, 'generate_subscripts_1': 1, 'param_1': 'p', 'param_2': 'u', 'param_3': 'x', 'oids_1': 16456}
+multiagent-worker  | 2025-03-20 12:27:02,997 INFO sqlalchemy.engine.Engine ROLLBACK
+multiagent-worker  | 2025-03-20 12:27:02 [INFO] sqlalchemy.engine.Engine: ROLLBACK
+multiagent-worker  | 2025-03-20 12:27:03,001 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03,001 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.oid, pg_catalog.pg_class.relname 
+multiagent-worker  | FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+multiagent-worker  | WHERE pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s AND pg_catalog.pg_class.relname IN (%(filter_names_1)s)
+multiagent-worker  | 2025-03-20 12:27:03,002 INFO sqlalchemy.engine.Engine [cached since 0.1168s ago] {'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog', 'filter_names_1': 'agent_executions'}
+multiagent-worker  | 2025-03-20 12:27:03,004 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_index.indrelid, cls_idx.relname AS relname_index, pg_catalog.pg_index.indisunique, pg_catalog.pg_constraint.conrelid IS NOT NULL AS has_constraint, pg_catalog.pg_index.indoption, cls_idx.reloptions, pg_catalog.pg_am.amname, CASE WHEN (pg_catalog.pg_index.indpred IS NOT NULL) THEN pg_catalog.pg_get_expr(pg_catalog.pg_index.indpred, pg_catalog.pg_index.indrelid) END AS filter_definition, pg_catalog.pg_index.indnkeyatts, false AS indnullsnotdistinct, idx_cols.elements, idx_cols.elements_is_expr 
+multiagent-worker  | FROM pg_catalog.pg_index JOIN pg_catalog.pg_class AS cls_idx ON pg_catalog.pg_index.indexrelid = cls_idx.oid JOIN pg_catalog.pg_am ON cls_idx.relam = pg_catalog.pg_am.oid LEFT OUTER JOIN (SELECT idx_attr.indexrelid AS indexrelid, min(idx_attr.indrelid) AS min_1, array_agg(idx_attr.element ORDER BY idx_attr.ord) AS elements, array_agg(idx_attr.is_expr ORDER BY idx_attr.ord) AS elements_is_expr 
+multiagent-worker  | FROM (SELECT idx.indexrelid AS indexrelid, idx.indrelid AS indrelid, idx.ord AS ord, CASE WHEN (idx.attnum = %(attnum_1)s) THEN pg_catalog.pg_get_indexdef(idx.indexrelid, idx.ord + %(ord_1)s, %(pg_get_indexdef_1)s) ELSE CAST(pg_catalog.pg_attribute.attname AS TEXT) END AS element, idx.attnum = %(attnum_2)s AS is_expr 
+multiagent-worker  | FROM (SELECT pg_catalog.pg_index.indexrelid AS indexrelid, pg_catalog.pg_index.indrelid AS indrelid, unnest(pg_catalog.pg_index.indkey) AS attnum, generate_subscripts(pg_catalog.pg_index.indkey, %(generate_subscripts_1)s) AS ord 
+multiagent-worker  | FROM pg_catalog.pg_index 
+multiagent-worker  | WHERE NOT pg_catalog.pg_index.indisprimary AND pg_catalog.pg_index.indrelid IN (%(oids_1)s)) AS idx LEFT OUTER JOIN pg_catalog.pg_attribute ON pg_catalog.pg_attribute.attnum = idx.attnum AND pg_catalog.pg_attribute.attrelid = idx.indrelid 
+multiagent-worker  | WHERE idx.indrelid IN (%(oids_1)s)) AS idx_attr GROUP BY idx_attr.indexrelid) AS idx_cols ON pg_catalog.pg_index.indexrelid = idx_cols.indexrelid LEFT OUTER JOIN pg_catalog.pg_constraint ON pg_catalog.pg_index.indrelid = pg_catalog.pg_constraint.conrelid AND pg_catalog.pg_index.indexrelid = pg_catalog.pg_constraint.conindid AND pg_catalog.pg_constraint.contype = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s]) 
+multiagent-worker  | WHERE pg_catalog.pg_index.indrelid IN (%(oids_1)s) AND NOT pg_catalog.pg_index.indisprimary ORDER BY pg_catalog.pg_index.indrelid, cls_idx.relname
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: SELECT pg_catalog.pg_class.oid, pg_catalog.pg_class.relname 
+multiagent-worker  | FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+multiagent-worker  | WHERE pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s AND pg_catalog.pg_class.relname IN (%(filter_names_1)s)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: [cached since 0.1168s ago] {'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog', 'filter_names_1': 'agent_executions'}
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: SELECT pg_catalog.pg_index.indrelid, cls_idx.relname AS relname_index, pg_catalog.pg_index.indisunique, pg_catalog.pg_constraint.conrelid IS NOT NULL AS has_constraint, pg_catalog.pg_index.indoption, cls_idx.reloptions, pg_catalog.pg_am.amname, CASE WHEN (pg_catalog.pg_index.indpred IS NOT NULL) THEN pg_catalog.pg_get_expr(pg_catalog.pg_index.indpred, pg_catalog.pg_index.indrelid) END AS filter_definition, pg_catalog.pg_index.indnkeyatts, false AS indnullsnotdistinct, idx_cols.elements, idx_cols.elements_is_expr 
+multiagent-worker  | FROM pg_catalog.pg_index JOIN pg_catalog.pg_class AS cls_idx ON pg_catalog.pg_index.indexrelid = cls_idx.oid JOIN pg_catalog.pg_am ON cls_idx.relam = pg_catalog.pg_am.oid LEFT OUTER JOIN (SELECT idx_attr.indexrelid AS indexrelid, min(idx_attr.indrelid) AS min_1, array_agg(idx_attr.element ORDER BY idx_attr.ord) AS elements, array_agg(idx_attr.is_expr ORDER BY idx_attr.ord) AS elements_is_expr 
+multiagent-worker  | FROM (SELECT idx.indexrelid AS indexrelid, idx.indrelid AS indrelid, idx.ord AS ord, CASE WHEN (idx.attnum = %(attnum_1)s) THEN pg_catalog.pg_get_indexdef(idx.indexrelid, idx.ord + %(ord_1)s, %(pg_get_indexdef_1)s) ELSE CAST(pg_catalog.pg_attribute.attname AS TEXT) END AS element, idx.attnum = %(attnum_2)s AS is_expr 
+multiagent-worker  | FROM (SELECT pg_catalog.pg_index.indexrelid AS indexrelid, pg_catalog.pg_index.indrelid AS indrelid, unnest(pg_catalog.pg_index.indkey) AS attnum, generate_subscripts(pg_catalog.pg_index.indkey, %(generate_subscripts_1)s) AS ord 
+multiagent-worker  | FROM pg_catalog.pg_index 
+multiagent-worker  | WHERE NOT pg_catalog.pg_index.indisprimary AND pg_catalog.pg_index.indrelid IN (%(oids_1)s)) AS idx LEFT OUTER JOIN pg_catalog.pg_attribute ON pg_catalog.pg_attribute.attnum = idx.attnum AND pg_catalog.pg_attribute.attrelid = idx.indrelid 
+multiagent-worker  | WHERE idx.indrelid IN (%(oids_1)s)) AS idx_attr GROUP BY idx_attr.indexrelid) AS idx_cols ON pg_catalog.pg_index.indexrelid = idx_cols.indexrelid LEFT OUTER JOIN pg_catalog.pg_constraint ON pg_catalog.pg_index.indrelid = pg_catalog.pg_constraint.conrelid AND pg_catalog.pg_index.indexrelid = pg_catalog.pg_constraint.conindid AND pg_catalog.pg_constraint.contype = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s]) 
+multiagent-worker  | WHERE pg_catalog.pg_index.indrelid IN (%(oids_1)s) AND NOT pg_catalog.pg_index.indisprimary ORDER BY pg_catalog.pg_index.indrelid, cls_idx.relname
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: [cached since 0.09045s ago] {'attnum_1': 0, 'ord_1': 1, 'pg_get_indexdef_1': True, 'attnum_2': 0, 'generate_subscripts_1': 1, 'param_1': 'p', 'param_2': 'u', 'param_3': 'x', 'oids_1': 16442}
+multiagent-worker  | 2025-03-20 12:27:03,005 INFO sqlalchemy.engine.Engine [cached since 0.09045s ago] {'attnum_1': 0, 'ord_1': 1, 'pg_get_indexdef_1': True, 'attnum_2': 0, 'generate_subscripts_1': 1, 'param_1': 'p', 'param_2': 'u', 'param_3': 'x', 'oids_1': 16442}
+multiagent-worker  | 2025-03-20 12:27:03,009 INFO sqlalchemy.engine.Engine ROLLBACK
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: ROLLBACK
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03,012 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03,012 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_class.oid, pg_catalog.pg_class.relname 
+multiagent-worker  | FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+multiagent-worker  | WHERE pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s AND pg_catalog.pg_class.relname IN (%(filter_names_1)s)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: SELECT pg_catalog.pg_class.oid, pg_catalog.pg_class.relname 
+multiagent-worker  | FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+multiagent-worker  | WHERE pg_catalog.pg_class.relkind = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s, %(param_4)s, %(param_5)s]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != %(nspname_1)s AND pg_catalog.pg_class.relname IN (%(filter_names_1)s)
+multiagent-worker  | 2025-03-20 12:27:03,013 INFO sqlalchemy.engine.Engine [cached since 0.1274s ago] {'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog', 'filter_names_1': 'agent_metrics'}
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: [cached since 0.1274s ago] {'param_1': 'r', 'param_2': 'p', 'param_3': 'f', 'param_4': 'v', 'param_5': 'm', 'nspname_1': 'pg_catalog', 'filter_names_1': 'agent_metrics'}
+multiagent-worker  | 2025-03-20 12:27:03,017 INFO sqlalchemy.engine.Engine SELECT pg_catalog.pg_index.indrelid, cls_idx.relname AS relname_index, pg_catalog.pg_index.indisunique, pg_catalog.pg_constraint.conrelid IS NOT NULL AS has_constraint, pg_catalog.pg_index.indoption, cls_idx.reloptions, pg_catalog.pg_am.amname, CASE WHEN (pg_catalog.pg_index.indpred IS NOT NULL) THEN pg_catalog.pg_get_expr(pg_catalog.pg_index.indpred, pg_catalog.pg_index.indrelid) END AS filter_definition, pg_catalog.pg_index.indnkeyatts, false AS indnullsnotdistinct, idx_cols.elements, idx_cols.elements_is_expr 
+multiagent-worker  | FROM pg_catalog.pg_index JOIN pg_catalog.pg_class AS cls_idx ON pg_catalog.pg_index.indexrelid = cls_idx.oid JOIN pg_catalog.pg_am ON cls_idx.relam = pg_catalog.pg_am.oid LEFT OUTER JOIN (SELECT idx_attr.indexrelid AS indexrelid, min(idx_attr.indrelid) AS min_1, array_agg(idx_attr.element ORDER BY idx_attr.ord) AS elements, array_agg(idx_attr.is_expr ORDER BY idx_attr.ord) AS elements_is_expr 
+multiagent-worker  | FROM (SELECT idx.indexrelid AS indexrelid, idx.indrelid AS indrelid, idx.ord AS ord, CASE WHEN (idx.attnum = %(attnum_1)s) THEN pg_catalog.pg_get_indexdef(idx.indexrelid, idx.ord + %(ord_1)s, %(pg_get_indexdef_1)s) ELSE CAST(pg_catalog.pg_attribute.attname AS TEXT) END AS element, idx.attnum = %(attnum_2)s AS is_expr 
+multiagent-worker  | FROM (SELECT pg_catalog.pg_index.indexrelid AS indexrelid, pg_catalog.pg_index.indrelid AS indrelid, unnest(pg_catalog.pg_index.indkey) AS attnum, generate_subscripts(pg_catalog.pg_index.indkey, %(generate_subscripts_1)s) AS ord 
+multiagent-worker  | FROM pg_catalog.pg_index 
+multiagent-worker  | WHERE NOT pg_catalog.pg_index.indisprimary AND pg_catalog.pg_index.indrelid IN (%(oids_1)s)) AS idx LEFT OUTER JOIN pg_catalog.pg_attribute ON pg_catalog.pg_attribute.attnum = idx.attnum AND pg_catalog.pg_attribute.attrelid = idx.indrelid 
+multiagent-worker  | WHERE idx.indrelid IN (%(oids_1)s)) AS idx_attr GROUP BY idx_attr.indexrelid) AS idx_cols ON pg_catalog.pg_index.indexrelid = idx_cols.indexrelid LEFT OUTER JOIN pg_catalog.pg_constraint ON pg_catalog.pg_index.indrelid = pg_catalog.pg_constraint.conrelid AND pg_catalog.pg_index.indexrelid = pg_catalog.pg_constraint.conindid AND pg_catalog.pg_constraint.contype = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s]) 
+multiagent-worker  | WHERE pg_catalog.pg_index.indrelid IN (%(oids_1)s) AND NOT pg_catalog.pg_index.indisprimary ORDER BY pg_catalog.pg_index.indrelid, cls_idx.relname
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: SELECT pg_catalog.pg_index.indrelid, cls_idx.relname AS relname_index, pg_catalog.pg_index.indisunique, pg_catalog.pg_constraint.conrelid IS NOT NULL AS has_constraint, pg_catalog.pg_index.indoption, cls_idx.reloptions, pg_catalog.pg_am.amname, CASE WHEN (pg_catalog.pg_index.indpred IS NOT NULL) THEN pg_catalog.pg_get_expr(pg_catalog.pg_index.indpred, pg_catalog.pg_index.indrelid) END AS filter_definition, pg_catalog.pg_index.indnkeyatts, false AS indnullsnotdistinct, idx_cols.elements, idx_cols.elements_is_expr 
+multiagent-worker  | FROM pg_catalog.pg_index JOIN pg_catalog.pg_class AS cls_idx ON pg_catalog.pg_index.indexrelid = cls_idx.oid JOIN pg_catalog.pg_am ON cls_idx.relam = pg_catalog.pg_am.oid LEFT OUTER JOIN (SELECT idx_attr.indexrelid AS indexrelid, min(idx_attr.indrelid) AS min_1, array_agg(idx_attr.element ORDER BY idx_attr.ord) AS elements, array_agg(idx_attr.is_expr ORDER BY idx_attr.ord) AS elements_is_expr 
+multiagent-worker  | FROM (SELECT idx.indexrelid AS indexrelid, idx.indrelid AS indrelid, idx.ord AS ord, CASE WHEN (idx.attnum = %(attnum_1)s) THEN pg_catalog.pg_get_indexdef(idx.indexrelid, idx.ord + %(ord_1)s, %(pg_get_indexdef_1)s) ELSE CAST(pg_catalog.pg_attribute.attname AS TEXT) END AS element, idx.attnum = %(attnum_2)s AS is_expr 
+multiagent-worker  | FROM (SELECT pg_catalog.pg_index.indexrelid AS indexrelid, pg_catalog.pg_index.indrelid AS indrelid, unnest(pg_catalog.pg_index.indkey) AS attnum, generate_subscripts(pg_catalog.pg_index.indkey, %(generate_subscripts_1)s) AS ord 
+multiagent-worker  | FROM pg_catalog.pg_index 
+multiagent-worker  | WHERE NOT pg_catalog.pg_index.indisprimary AND pg_catalog.pg_index.indrelid IN (%(oids_1)s)) AS idx LEFT OUTER JOIN pg_catalog.pg_attribute ON pg_catalog.pg_attribute.attnum = idx.attnum AND pg_catalog.pg_attribute.attrelid = idx.indrelid 
+multiagent-worker  | WHERE idx.indrelid IN (%(oids_1)s)) AS idx_attr GROUP BY idx_attr.indexrelid) AS idx_cols ON pg_catalog.pg_index.indexrelid = idx_cols.indexrelid LEFT OUTER JOIN pg_catalog.pg_constraint ON pg_catalog.pg_index.indrelid = pg_catalog.pg_constraint.conrelid AND pg_catalog.pg_index.indexrelid = pg_catalog.pg_constraint.conindid AND pg_catalog.pg_constraint.contype = ANY (ARRAY[%(param_1)s, %(param_2)s, %(param_3)s]) 
+multiagent-worker  | WHERE pg_catalog.pg_index.indrelid IN (%(oids_1)s) AND NOT pg_catalog.pg_index.indisprimary ORDER BY pg_catalog.pg_index.indrelid, cls_idx.relname
+multiagent-worker  | 2025-03-20 12:27:03,018 INFO sqlalchemy.engine.Engine [cached since 0.1033s ago] {'attnum_1': 0, 'ord_1': 1, 'pg_get_indexdef_1': True, 'attnum_2': 0, 'generate_subscripts_1': 1, 'param_1': 'p', 'param_2': 'u', 'param_3': 'x', 'oids_1': 16469}
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: [cached since 0.1033s ago] {'attnum_1': 0, 'ord_1': 1, 'pg_get_indexdef_1': True, 'attnum_2': 0, 'generate_subscripts_1': 1, 'param_1': 'p', 'param_2': 'u', 'param_3': 'x', 'oids_1': 16469}
+multiagent-worker  | 2025-03-20 12:27:03,028 INFO sqlalchemy.engine.Engine ROLLBACK
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: ROLLBACK
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Existing indexes: {'idx_api_requests_method_path', 'idx_results_celery_task_id', 'idx_results_status_created_at', 'idx_agent_metrics_last_executed_at', 'idx_provider_performances_recorded_at', 'idx_results_query_workflow', 'idx_provider_performances_provider_task', 'api_requests_request_id_key', 'idx_provider_capabilities_provider_id_type', 'results_task_id_key', 'idx_agent_metrics_agent_task', 'idx_api_requests_created_at', 'provider_configs_provider_id_key'}
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Table provider_configs already exists, skipping creation
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Table provider_capabilities already exists, skipping creation
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Index idx_provider_capabilities_provider_id_type already exists, skipping creation
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Table provider_performances already exists, skipping creation
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Index idx_provider_performances_recorded_at already exists, skipping creation
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Index idx_provider_performances_provider_task already exists, skipping creation
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Table results already exists, skipping creation
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Creating index: ix_results_task_id
+multiagent-worker  | 2025-03-20 12:27:03,035 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: CREATE UNIQUE INDEX ix_results_task_id ON results (task_id)
+multiagent-worker  | 2025-03-20 12:27:03,039 INFO sqlalchemy.engine.Engine CREATE UNIQUE INDEX ix_results_task_id ON results (task_id)
+multiagent-worker  | 2025-03-20 12:27:03,039 INFO sqlalchemy.engine.Engine [no key 0.00155s] {}
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: [no key 0.00155s] {}
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: COMMIT
+multiagent-worker  | 2025-03-20 12:27:03,056 INFO sqlalchemy.engine.Engine COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Creating index: idx_results_user_id_created_at
+multiagent-worker  | 2025-03-20 12:27:03,076 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03,077 INFO sqlalchemy.engine.Engine CREATE INDEX idx_results_user_id_created_at ON results (user_id, created_at)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: CREATE INDEX idx_results_user_id_created_at ON results (user_id, created_at)
+multiagent-worker  | 2025-03-20 12:27:03,079 INFO sqlalchemy.engine.Engine [no key 0.00140s] {}
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: [no key 0.00140s] {}
+multiagent-worker  | 2025-03-20 12:27:03,089 INFO sqlalchemy.engine.Engine COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: COMMIT
+multiagent-worker  | 2025-03-20 12:27:03,093 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03,093 INFO sqlalchemy.engine.Engine CREATE INDEX ix_results_celery_task_id ON results (celery_task_id)
+multiagent-worker  | 2025-03-20 12:27:03,094 INFO sqlalchemy.engine.Engine [no key 0.00041s] {}
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Index idx_results_celery_task_id already exists, skipping creation
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Creating index: ix_results_celery_task_id
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: CREATE INDEX ix_results_celery_task_id ON results (celery_task_id)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: [no key 0.00041s] {}
+multiagent-worker  | 2025-03-20 12:27:03,104 INFO sqlalchemy.engine.Engine COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Creating index: ix_results_status
+multiagent-worker  | 2025-03-20 12:27:03,106 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03,107 INFO sqlalchemy.engine.Engine CREATE INDEX ix_results_status ON results (status)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: CREATE INDEX ix_results_status ON results (status)
+multiagent-worker  | 2025-03-20 12:27:03,107 INFO sqlalchemy.engine.Engine [no key 0.00035s] {}
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: [no key 0.00035s] {}
+multiagent-worker  | 2025-03-20 12:27:03,112 INFO sqlalchemy.engine.Engine COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Creating index: ix_results_workflow
+multiagent-worker  | 2025-03-20 12:27:03,114 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03,115 INFO sqlalchemy.engine.Engine CREATE INDEX ix_results_workflow ON results (workflow)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: CREATE INDEX ix_results_workflow ON results (workflow)
+multiagent-worker  | 2025-03-20 12:27:03,115 INFO sqlalchemy.engine.Engine [no key 0.00059s] {}
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: [no key 0.00059s] {}
+multiagent-worker  | 2025-03-20 12:27:03,119 INFO sqlalchemy.engine.Engine COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Index idx_results_query_workflow already exists, skipping creation
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Creating index: ix_results_user_id
+multiagent-worker  | 2025-03-20 12:27:03,121 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03,122 INFO sqlalchemy.engine.Engine CREATE INDEX ix_results_user_id ON results (user_id)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: CREATE INDEX ix_results_user_id ON results (user_id)
+multiagent-worker  | 2025-03-20 12:27:03,122 INFO sqlalchemy.engine.Engine [no key 0.00051s] {}
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: [no key 0.00051s] {}
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: COMMIT
+multiagent-worker  | 2025-03-20 12:27:03,126 INFO sqlalchemy.engine.Engine COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Index idx_results_status_created_at already exists, skipping creation
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Table agent_executions already exists, skipping creation
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Creating index: ix_agent_executions_result_id
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03,128 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03,129 INFO sqlalchemy.engine.Engine CREATE INDEX ix_agent_executions_result_id ON agent_executions (result_id)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: CREATE INDEX ix_agent_executions_result_id ON agent_executions (result_id)
+multiagent-worker  | 2025-03-20 12:27:03,129 INFO sqlalchemy.engine.Engine [no key 0.00045s] {}
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: [no key 0.00045s] {}
+multiagent-worker  | 2025-03-20 12:27:03,133 INFO sqlalchemy.engine.Engine COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Creating index: ix_agent_executions_agent_id
+multiagent-worker  | 2025-03-20 12:27:03,135 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03,137 INFO sqlalchemy.engine.Engine CREATE INDEX ix_agent_executions_agent_id ON agent_executions (agent_id)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: CREATE INDEX ix_agent_executions_agent_id ON agent_executions (agent_id)
+multiagent-worker  | 2025-03-20 12:27:03,137 INFO sqlalchemy.engine.Engine [no key 0.00066s] {}
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: [no key 0.00066s] {}
+multiagent-worker  | 2025-03-20 12:27:03,141 INFO sqlalchemy.engine.Engine COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: COMMIT
+multiagent-worker  | 2025-03-20 12:27:03,144 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Creating index: idx_agent_executions_agent_id_status
+multiagent-worker  | 2025-03-20 12:27:03,145 INFO sqlalchemy.engine.Engine CREATE INDEX idx_agent_executions_agent_id_status ON agent_executions (agent_id, status)
+multiagent-worker  | 2025-03-20 12:27:03,146 INFO sqlalchemy.engine.Engine [no key 0.00046s] {}
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: CREATE INDEX idx_agent_executions_agent_id_status ON agent_executions (agent_id, status)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: [no key 0.00046s] {}
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: COMMIT
+multiagent-worker  | 2025-03-20 12:27:03,150 INFO sqlalchemy.engine.Engine COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Creating index: ix_agent_executions_status
+multiagent-worker  | 2025-03-20 12:27:03,153 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03,153 INFO sqlalchemy.engine.Engine CREATE INDEX ix_agent_executions_status ON agent_executions (status)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: CREATE INDEX ix_agent_executions_status ON agent_executions (status)
+multiagent-worker  | 2025-03-20 12:27:03,154 INFO sqlalchemy.engine.Engine [no key 0.00050s] {}
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: [no key 0.00050s] {}
+multiagent-worker  | 2025-03-20 12:27:03,158 INFO sqlalchemy.engine.Engine COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Table api_requests already exists, skipping creation
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Creating index: ix_api_requests_user_id
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03,161 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: CREATE INDEX ix_api_requests_user_id ON api_requests (user_id)
+multiagent-worker  | 2025-03-20 12:27:03,163 INFO sqlalchemy.engine.Engine CREATE INDEX ix_api_requests_user_id ON api_requests (user_id)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: [no key 0.00081s] {}
+multiagent-worker  | 2025-03-20 12:27:03,163 INFO sqlalchemy.engine.Engine [no key 0.00081s] {}
+multiagent-worker  | 2025-03-20 12:27:03,168 INFO sqlalchemy.engine.Engine COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Index idx_api_requests_method_path already exists, skipping creation
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Index idx_api_requests_created_at already exists, skipping creation
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Table agent_metrics already exists, skipping creation
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Index idx_agent_metrics_last_executed_at already exists, skipping creation
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Creating index: ix_agent_metrics_agent_id
+multiagent-worker  | 2025-03-20 12:27:03,172 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: BEGIN (implicit)
+multiagent-worker  | 2025-03-20 12:27:03,173 INFO sqlalchemy.engine.Engine CREATE INDEX ix_agent_metrics_agent_id ON agent_metrics (agent_id)
+multiagent-worker  | 2025-03-20 12:27:03,174 INFO sqlalchemy.engine.Engine [no key 0.00059s] {}
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: CREATE INDEX ix_agent_metrics_agent_id ON agent_metrics (agent_id)
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: [no key 0.00059s] {}
+multiagent-worker  | 2025-03-20 12:27:03,178 INFO sqlalchemy.engine.Engine COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] sqlalchemy.engine.Engine: COMMIT
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Index idx_agent_metrics_agent_task already exists, skipping creation
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.db.session: Database initialization complete
+multiagent-worker  | 2025-03-20 12:27:03 [INFO] multiagent.app.worker.celery_app: Database initialization complete
+multiagent-worker  | [2025-03-20 12:27:03,195: INFO/MainProcess] Worker celery@f6a6ab15c081 ready. Configuring additional settings...
+multiagent-worker  |  
+multiagent-worker  |  -------------- celery@f6a6ab15c081 v5.4.0 (opalescent)
+multiagent-worker  | --- ***** ----- 
+multiagent-worker  | -- ******* ---- Linux-6.8.0-1021-azure-x86_64-with-glibc2.36 2025-03-20 12:27:03
+multiagent-worker  | - *** --- * --- 
+multiagent-worker  | - ** ---------- [config]
+multiagent-worker  | - ** ---------- .> app:         multiagent_llm:0x746eb1b37dd0
+multiagent-worker  | - ** ---------- .> transport:   redis://redis:6379/0
+multiagent-worker  | - ** ---------- .> results:     redis://redis:6379/0
+multiagent-worker  | - *** --- * --- .> concurrency: 4 (prefork)
+multiagent-worker  | -- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+multiagent-worker  | --- ***** ----- 
+multiagent-worker  |  -------------- [queues]
+multiagent-worker  |                 .> agents           exchange=agents(direct) key=agents
+multiagent-worker  |                 .> updates          exchange=updates(direct) key=updates
+multiagent-worker  |                 .> workflows        exchange=workflows(direct) key=workflows
+multiagent-worker  | 
+multiagent-worker  | [tasks]
+multiagent-worker  |   . app.worker.tasks.execute_workflow_task
+multiagent-worker  |   . app.worker.tasks.update_progress
+multiagent-worker  | 
+multiagent-worker  | [2025-03-20 12:27:03,523: INFO/MainProcess] Connected to redis://redis:6379/0
+multiagent-worker  | [2025-03-20 12:27:03,529: INFO/MainProcess] mingle: searching for neighbors
+multiagent-worker  | [2025-03-20 12:27:04,537: INFO/MainProcess] mingle: all alone
+multiagent-worker  | [2025-03-20 12:27:04,569: INFO/MainProcess] Celery worker is ready to accept tasks
+multiagent-worker  | [2025-03-20 12:27:04,570: INFO/MainProcess] celery@f6a6ab15c081 ready.
+multiagent-worker  | [2025-03-20 12:27:04,574: INFO/MainProcess] Task app.worker.tasks.execute_workflow_task[755e27c6-c4b0-435c-b530-9edac9995f27] received
+multiagent-worker  | [2025-03-20 12:27:06,151: INFO/ForkPoolWorker-1] Starting task: app.worker.tasks.execute_workflow_task (ID: 755e27c6-c4b0-435c-b530-9edac9995f27)
+multiagent-worker  | [2025-03-20 12:27:06,559: INFO/MainProcess] Events of group {task} enabled by remote.
+multiagent-worker  | [2025-03-20 12:28:56,225: INFO/ForkPoolWorker-1] 🚀 DEBUG POINT 1: Task started with workflow_id=research, input_data keys=['task_id', 'query', 'user_id', 'parameters', 'trace_id', 'priority']
+multiagent-worker  | [2025-03-20 12:28:56,225: WARNING/ForkPoolWorker-1] 
+multiagent-worker  | === WORKFLOW TASK EXECUTION STARTED ===
+multiagent-worker  | Workflow ID: research
+multiagent-worker  | Input Data Keys: ['task_id', 'query', 'user_id', 'parameters', 'trace_id', 'priority']
+multiagent-worker  | [2025-03-20 12:29:01,069: INFO/ForkPoolWorker-1] 📋 DEBUG POINT 2: Extracted data - task_id=adc767be-8a62-400e-9d97-da2c4e930d41, user_id=string, query_preview=michael jackson
+multiagent-worker  | [2025-03-20 12:29:01,069: WARNING/ForkPoolWorker-1] Extracted data:
+multiagent-worker  | Task ID: adc767be-8a62-400e-9d97-da2c4e930d41
+multiagent-worker  | User ID: string
+multiagent-worker  | Query: michael jackson
+multiagent-worker  | [2025-03-20 12:30:19,417: INFO/ForkPoolWorker-1] 🔄 Starting workflow execution: workflow=research, task_id=adc767be-8a62-400e-9d97-da2c4e930d41, user_id=string, query=michael jackson

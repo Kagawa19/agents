@@ -182,7 +182,7 @@ class TaskQueue:
             
             # You might want to use a task tracking mechanism here
             # For example, you could send a WebSocket message
-            await connection_manager.send_task_update(
+            await connection_manager.update_state(
                 task_id=task_id,
                 status=status,
                 progress=progress,
