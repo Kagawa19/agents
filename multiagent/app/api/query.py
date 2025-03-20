@@ -6,6 +6,7 @@ import logging
 from datetime import datetime
 import traceback
 import time
+from sqlalchemy import text
 import os
 import json
 import pprint
@@ -174,7 +175,7 @@ async def submit_query(query_data: Dict[str, Any]) -> Dict[str, Any]:
     try:
         with SessionLocal() as db:
             # Check if database connection is working
-            db_check = db.execute("SELECT 1").scalar()
+            db_check = db.execute(text("SELECT 1")).scalar()
             if db_check != 1:
                 logger.error("❌ Database connection check failed!")
                 print("ERROR: Database connection check failed!")
@@ -602,113 +603,7 @@ async def update_task_progress(
         print(f"\n=== TASK RESULT RETRIEVAL FAILED ===\n")
         raise
     
-    try:
-        # Debug logging progress update
-        logger.debug(f"🔄 Updating progress for task {task_id}: status={status}, progress={progress}")
-        print(f"\n=== UPDATING TASK PROGRESS ===\nTask ID: {task_id}\nStatus: {status}\nProgress: {progress}%\nStep: {current_step}")
-        
-        # First, update the database directly for redundancy
-        try:
-            with SessionLocal() as db:
-                # Verify database connection
-                db_check = db.execute("SELECT 1").scalar()
-                if db_check != 1:
-                    logger.warning("⚠️ Database connection check failed when updating progress")
-                    print("WARNING: Database connection check failed when updating progress")
-                else:
-                    print("Database connection verified")
-                
-                # Update in database
-                existing_record = crud_result.get_by_task_id(db=db, task_id=task_id)
-                
-                if existing_record:
-                    # Log the existing record before update
-                    before_dict = {
-                        "id": existing_record.id,
-                        "task_id": existing_record.task_id,
-                        "status": existing_record.status,
-                        "result": str(existing_record.result)[:100] + "..." if existing_record.result and len(str(existing_record.result)) > 100 else existing_record.result
-                    }
-                    logger.debug(f"📋 Existing record before update: {json.dumps(before_dict, indent=2)}")
-                    print(f"Existing record before update: {pprint.pformat(before_dict)}")
-                    
-                    # Prepare update data
-                    update_data = {
-                        "status": status,
-                        "updated_at": datetime.utcnow()
-                    }
-                    
-                    # Add result or error if provided
-                    if result is not None:
-                        update_data["result"] = result
-                        logger.debug(f"📊 Adding result to update: {json.dumps(str(result)[:100], indent=2)}...")
-                        print(f"Adding result to update (truncated): {str(result)[:100]}...")
-                    
-                    if error is not None:
-                        logger.debug(f"❌ Adding error to update: {error}")
-                        print(f"Adding error to update: {error}")
-                        
-                        if existing_record.result:
-                            # Preserve existing result data if any
-                            current_result = existing_record.result
-                            if isinstance(current_result, dict):
-                                current_result["error"] = error
-                                update_data["result"] = current_result
-                                logger.debug("📊 Merged error with existing result dictionary")
-                                print("Merged error with existing result dictionary")
-                            else:
-                                update_data["result"] = {"previous_data": str(current_result), "error": error}
-                                logger.debug("📊 Created new result dictionary with previous data and error")
-                                print("Created new result dictionary with previous data and error")
-                        else:
-                            update_data["result"] = {"error": error}
-                            logger.debug("📊 Created new result dictionary with error")
-                            print("Created new result dictionary with error")
-                    
-                    # Update record
-                    updated_obj = crud_result.update(db=db, db_obj=existing_record, obj_in=update_data)
-                    db.commit()
-                    logger.info(f"✅ Updated progress in database for task {task_id}")
-                    print(f"Updated progress in database for task {task_id}")
-                    
-                    # Log the updated record
-                    if updated_obj:
-                        after_dict = {
-                            "id": updated_obj.id,
-                            "task_id": updated_obj.task_id,
-                            "status": updated_obj.status,
-                            "result": str(updated_obj.result)[:100] + "..." if updated_obj.result and len(str(updated_obj.result)) > 100 else updated_obj.result,
-                            "updated_at": updated_obj.updated_at.isoformat() if updated_obj.updated_at else None
-                        }
-                        logger.debug(f"📋 Record after update: {json.dumps(after_dict, indent=2)}")
-                        print(f"Record after update: {pprint.pformat(after_dict)}")
-                else:
-                    logger.warning(f"⚠️ No record found in database for task {task_id} when updating progress")
-                    print(f"WARNING: No record found in database for task {task_id} when updating progress")
-        except Exception as db_error:
-            logger.error(f"❌ Error updating progress in database: {db_error}", exc_info=True)
-            print(f"ERROR: Error updating progress in database: {db_error}")
-        
-        # Call the update_progress task
-        progress_task = update_progress.delay(
-            task_id=task_id,
-            status=status,
-            progress=progress,
-            current_step=current_step,
-            result=result,
-            error=error
-        )
-        
-        logger.debug(f"📤 Progress update submitted to Celery: {progress_task.id}")
-        print(f"Progress update submitted to Celery: {progress_task.id}")
-        print(f"\n=== TASK PROGRESS UPDATE COMPLETED ===\n")
-        return True
-    except Exception as e:
-        logger.error(f"❌ Error updating progress for task {task_id}: {str(e)}")
-        logger.error(f"📜 Traceback: {traceback.format_exc()}")
-        print(f"ERROR: Error updating progress for task {task_id}: {str(e)}")
-        print(f"\n=== TASK PROGRESS UPDATE FAILED ===\n")
-        return False
+   
 
 async def get_query_status(task_id: str) -> Dict[str, Any]:
     """

@@ -1,2 +1,0 @@
-time="2025-03-20T12:14:03Z" level=warning msg="/workspaces/agents/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
-multiagent-prometheus  | ts=2025-03-20T11:55:34.169Z caller=main.go:537 level=error msg="Error loading config (--config.file=/etc/prometheus/prometheus.yml)" file=/etc/prometheus/prometheus.yml err="open /etc/prometheus/prometheus.yml: no such file or directory"

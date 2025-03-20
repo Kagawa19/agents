@@ -89,7 +89,7 @@ class CRUDResult(CRUDBase[Result, dict, dict]):
 
             
             # Debug: Verify database connectivity
-            db_check = db.execute("SELECT 1").scalar()
+            db_check = db.execute(text("SELECT 1")).scalar()
             logger.debug(f"Database connectivity check: {db_check == 1}")
             
             # Check if a result with this task_id already exists

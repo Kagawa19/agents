@@ -42,3 +42,5 @@ docker cp mn.py multiagent-api:/app/
 
 # Then execute it
 docker-compose exec api python /app/mn.py
+
+docker-compose logs worker > work.txt

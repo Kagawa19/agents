@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Expose ports
-EXPOSE 8000
+EXPOSE 8000 
 EXPOSE 5678
 
 # Install pip requirements
@@ -43,6 +43,10 @@ COPY . /app
 # Create a health check file
 RUN echo "#!/bin/sh\npython -c 'import socket; socket.socket().connect((\"redis\", 6379))'" > /app/healthcheck.sh \
     && chmod +x /app/healthcheck.sh
+
+# Migration entry point script
+COPY scripts/migrate.sh /app/scripts/migrate.sh
+RUN chmod +x /app/scripts/migrate.sh
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD /app/healthcheck.sh
