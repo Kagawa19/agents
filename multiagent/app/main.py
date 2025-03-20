@@ -101,11 +101,14 @@ async def api_get_query_status(
 ):
     """Get the status of a submitted query."""
     try:
-        status = await get_query_status(task_id, db)
+        # Only pass the task_id parameter
+        status = await get_query_status(task_id)
+        
         return StandardResponse(
             success=True,
             message="Query status retrieved successfully",
-            data=status
+            data=status,
+            status="success"  # Include this if required by your model
         )
     except Exception as e:
         logger.error(f"Error retrieving query status: {str(e)}")
