@@ -1,80 +1,311 @@
-time="2025-03-20T09:48:38Z" level=warning msg="/workspaces/agents/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+time="2025-03-20T11:49:10Z" level=warning msg="/workspaces/agents/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+multiagent-db  | The files belonging to this database system will be owned by user "postgres".
+multiagent-db  | This user must also own the server process.
 multiagent-db  | 
-multiagent-db  | PostgreSQL Database directory appears to contain a database; Skipping initialization
+multiagent-db  | The database cluster will be initialized with locale "en_US.utf8".
+multiagent-db  | The default database encoding has accordingly been set to "UTF8".
+multiagent-db  | The default text search configuration will be set to "english".
 multiagent-db  | 
-multiagent-db  | 2025-03-20 09:45:19.711 UTC [1] LOG:  starting PostgreSQL 14.17 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
-multiagent-db  | 2025-03-20 09:45:19.712 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
-multiagent-db  | 2025-03-20 09:45:19.714 UTC [1] LOG:  listening on IPv6 address "::", port 5432
-multiagent-db  | 2025-03-20 09:45:19.720 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
-multiagent-db  | 2025-03-20 09:45:19.786 UTC [26] LOG:  database system was shut down at 2025-03-20 09:44:56 UTC
-multiagent-db  | 2025-03-20 09:45:19.840 UTC [1] LOG:  database system is ready to accept connections
-multiagent-db  | 2025-03-20 09:46:03.447 UTC [35] ERROR:  relation "idx_provider_capabilities_provider_id_type" already exists
-multiagent-db  | 2025-03-20 09:46:03.447 UTC [35] STATEMENT:  CREATE INDEX idx_provider_capabilities_provider_id_type ON provider_capabilities (provider_id, capability_type)
-multiagent-db  | 2025-03-20 09:46:03.473 UTC [35] ERROR:  relation "idx_provider_performances_provider_task" already exists
-multiagent-db  | 2025-03-20 09:46:03.473 UTC [35] STATEMENT:  CREATE INDEX idx_provider_performances_provider_task ON provider_performances (provider_id, task_type)
-multiagent-db  | 2025-03-20 09:46:03.475 UTC [35] ERROR:  relation "idx_provider_performances_recorded_at" already exists
-multiagent-db  | 2025-03-20 09:46:03.475 UTC [35] STATEMENT:  CREATE INDEX idx_provider_performances_recorded_at ON provider_performances (recorded_at)
-multiagent-db  | 2025-03-20 09:46:03.501 UTC [35] ERROR:  relation "idx_results_celery_task_id" already exists
-multiagent-db  | 2025-03-20 09:46:03.501 UTC [35] STATEMENT:  CREATE INDEX idx_results_celery_task_id ON results (celery_task_id)
-multiagent-db  | 2025-03-20 09:46:03.504 UTC [35] ERROR:  relation "idx_results_query_workflow" already exists
-multiagent-db  | 2025-03-20 09:46:03.504 UTC [35] STATEMENT:  CREATE INDEX idx_results_query_workflow ON results (query, workflow)
-multiagent-db  | 2025-03-20 09:46:03.507 UTC [35] ERROR:  relation "idx_results_status_created_at" already exists
-multiagent-db  | 2025-03-20 09:46:03.507 UTC [35] STATEMENT:  CREATE INDEX idx_results_status_created_at ON results (status, created_at)
-multiagent-db  | 2025-03-20 09:46:03.544 UTC [35] ERROR:  relation "idx_api_requests_method_path" already exists
-multiagent-db  | 2025-03-20 09:46:03.544 UTC [35] STATEMENT:  CREATE INDEX idx_api_requests_method_path ON api_requests (method, path)
-multiagent-db  | 2025-03-20 09:46:03.548 UTC [35] ERROR:  relation "idx_api_requests_created_at" already exists
-multiagent-db  | 2025-03-20 09:46:03.548 UTC [35] STATEMENT:  CREATE INDEX idx_api_requests_created_at ON api_requests (created_at)
-multiagent-db  | 2025-03-20 09:46:03.571 UTC [35] ERROR:  relation "idx_agent_metrics_last_executed_at" already exists
-multiagent-db  | 2025-03-20 09:46:03.571 UTC [35] STATEMENT:  CREATE INDEX idx_agent_metrics_last_executed_at ON agent_metrics (last_executed_at)
-multiagent-db  | 2025-03-20 09:46:03.576 UTC [35] ERROR:  relation "idx_agent_metrics_agent_task" already exists
-multiagent-db  | 2025-03-20 09:46:03.576 UTC [35] STATEMENT:  CREATE INDEX idx_agent_metrics_agent_task ON agent_metrics (agent_id, task_type)
-multiagent-db  | 2025-03-20 09:46:57.408 UTC [33] ERROR:  column results.retry_count does not exist at character 294
-multiagent-db  | 2025-03-20 09:46:57.408 UTC [33] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | Data page checksums are disabled.
+multiagent-db  | 
+multiagent-db  | fixing permissions on existing directory /var/lib/postgresql/data ... ok
+multiagent-db  | creating subdirectories ... ok
+multiagent-db  | selecting dynamic shared memory implementation ... posix
+multiagent-db  | selecting default max_connections ... 100
+multiagent-db  | selecting default shared_buffers ... 128MB
+multiagent-db  | selecting default time zone ... UTC
+multiagent-db  | creating configuration files ... ok
+multiagent-db  | running bootstrap script ... ok
+multiagent-db  | sh: locale: not found
+multiagent-db  | 2025-03-20 11:45:11.539 UTC [34] WARNING:  no usable system locales were found
+multiagent-db  | performing post-bootstrap initialization ... ok
+multiagent-db  | syncing data to disk ... ok
+multiagent-db  | initdb: warning: enabling "trust" authentication for local connections
+multiagent-db  | You can change this by editing pg_hba.conf or using the option -A, or
+multiagent-db  | --auth-local and --auth-host, the next time you run initdb.
+multiagent-db  | 
+multiagent-db  | 
+multiagent-db  | Success. You can now start the database server using:
+multiagent-db  | 
+multiagent-db  |     pg_ctl -D /var/lib/postgresql/data -l logfile start
+multiagent-db  | 
+multiagent-db  | waiting for server to start....2025-03-20 11:45:16.897 UTC [40] LOG:  starting PostgreSQL 14.17 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+multiagent-db  | 2025-03-20 11:45:16.905 UTC [40] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+multiagent-db  | 2025-03-20 11:45:16.923 UTC [41] LOG:  database system was shut down at 2025-03-20 11:45:14 UTC
+multiagent-db  | 2025-03-20 11:45:16.975 UTC [40] LOG:  database system is ready to accept connections
+multiagent-db  |  done
+multiagent-db  | server started
+multiagent-db  | CREATE DATABASE
+multiagent-db  | 
+multiagent-db  | 
+multiagent-db  | /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+multiagent-db  | 
+multiagent-db  | waiting for server to shut down....2025-03-20 11:45:17.899 UTC [40] LOG:  received fast shutdown request
+multiagent-db  | 2025-03-20 11:45:17.908 UTC [40] LOG:  aborting any active transactions
+multiagent-db  | 2025-03-20 11:45:18.033 UTC [40] LOG:  background worker "logical replication launcher" (PID 47) exited with exit code 1
+multiagent-db  | 2025-03-20 11:45:18.034 UTC [42] LOG:  shutting down
+multiagent-db  | 2025-03-20 11:45:18.106 UTC [40] LOG:  database system is shut down
+multiagent-db  |  done
+multiagent-db  | server stopped
+multiagent-db  | 
+multiagent-db  | PostgreSQL init process complete; ready for start up.
+multiagent-db  | 
+multiagent-db  | 2025-03-20 11:45:18.385 UTC [1] LOG:  starting PostgreSQL 14.17 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+multiagent-db  | 2025-03-20 11:45:18.385 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+multiagent-db  | 2025-03-20 11:45:18.385 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+multiagent-db  | 2025-03-20 11:45:18.397 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+multiagent-db  | 2025-03-20 11:45:18.419 UTC [55] LOG:  database system was shut down at 2025-03-20 11:45:18 UTC
+multiagent-db  | 2025-03-20 11:45:18.466 UTC [1] LOG:  database system is ready to accept connections
+multiagent-db  | 2025-03-20 11:46:06.483 UTC [62] ERROR:  relation "idx_provider_capabilities_provider_id_type" already exists
+multiagent-db  | 2025-03-20 11:46:06.483 UTC [62] STATEMENT:  CREATE INDEX idx_provider_capabilities_provider_id_type ON provider_capabilities (provider_id, capability_type)
+multiagent-db  | 2025-03-20 11:46:06.529 UTC [62] ERROR:  relation "idx_provider_performances_provider_task" already exists
+multiagent-db  | 2025-03-20 11:46:06.529 UTC [62] STATEMENT:  CREATE INDEX idx_provider_performances_provider_task ON provider_performances (provider_id, task_type)
+multiagent-db  | 2025-03-20 11:46:06.532 UTC [62] ERROR:  relation "idx_provider_performances_recorded_at" already exists
+multiagent-db  | 2025-03-20 11:46:06.532 UTC [62] STATEMENT:  CREATE INDEX idx_provider_performances_recorded_at ON provider_performances (recorded_at)
+multiagent-db  | 2025-03-20 11:46:06.570 UTC [62] ERROR:  relation "idx_results_celery_task_id" already exists
+multiagent-db  | 2025-03-20 11:46:06.570 UTC [62] STATEMENT:  CREATE INDEX idx_results_celery_task_id ON results (celery_task_id)
+multiagent-db  | 2025-03-20 11:46:06.573 UTC [62] ERROR:  relation "idx_results_query_workflow" already exists
+multiagent-db  | 2025-03-20 11:46:06.573 UTC [62] STATEMENT:  CREATE INDEX idx_results_query_workflow ON results (query, workflow)
+multiagent-db  | 2025-03-20 11:46:06.575 UTC [62] ERROR:  relation "idx_results_status_created_at" already exists
+multiagent-db  | 2025-03-20 11:46:06.575 UTC [62] STATEMENT:  CREATE INDEX idx_results_status_created_at ON results (status, created_at)
+multiagent-db  | 2025-03-20 11:46:06.630 UTC [62] ERROR:  relation "idx_api_requests_created_at" already exists
+multiagent-db  | 2025-03-20 11:46:06.630 UTC [62] STATEMENT:  CREATE INDEX idx_api_requests_created_at ON api_requests (created_at)
+multiagent-db  | 2025-03-20 11:46:06.636 UTC [62] ERROR:  relation "idx_api_requests_method_path" already exists
+multiagent-db  | 2025-03-20 11:46:06.636 UTC [62] STATEMENT:  CREATE INDEX idx_api_requests_method_path ON api_requests (method, path)
+multiagent-db  | 2025-03-20 11:46:06.665 UTC [62] ERROR:  relation "idx_agent_metrics_agent_task" already exists
+multiagent-db  | 2025-03-20 11:46:06.665 UTC [62] STATEMENT:  CREATE INDEX idx_agent_metrics_agent_task ON agent_metrics (agent_id, task_type)
+multiagent-db  | 2025-03-20 11:46:06.672 UTC [62] ERROR:  relation "idx_agent_metrics_last_executed_at" already exists
+multiagent-db  | 2025-03-20 11:46:06.672 UTC [62] STATEMENT:  CREATE INDEX idx_agent_metrics_last_executed_at ON agent_metrics (last_executed_at)
+multiagent-db  | 2025-03-20 11:48:24.166 UTC [67] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:24.166 UTC [67] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
 multiagent-db  | 	FROM results 
-multiagent-db  | 	WHERE results.task_id = '82834780-c325-4813-a0f8-cebd258766f2' 
+multiagent-db  | 	WHERE results.task_id = '5ba9cb43-8314-45cd-90e7-038a68226edf' 
 multiagent-db  | 	 LIMIT 1
-multiagent-db  | 2025-03-20 09:46:57.594 UTC [33] ERROR:  column results.retry_count does not exist at character 294
-multiagent-db  | 2025-03-20 09:46:57.594 UTC [33] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 2025-03-20 11:48:24.172 UTC [67] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:24.172 UTC [67] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:27.177 UTC [67] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:27.177 UTC [67] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
 multiagent-db  | 	FROM results 
-multiagent-db  | 	WHERE results.task_id = '82834780-c325-4813-a0f8-cebd258766f2' 
+multiagent-db  | 	WHERE results.task_id = 'cdc5265d-186c-4b87-a949-633ea112b447' 
 multiagent-db  | 	 LIMIT 1
-multiagent-db  | 2025-03-20 09:46:58.654 UTC [33] ERROR:  column results.retry_count does not exist at character 294
-multiagent-db  | 2025-03-20 09:46:58.654 UTC [33] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 2025-03-20 11:48:27.187 UTC [67] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:27.187 UTC [67] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:30.517 UTC [67] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:30.517 UTC [67] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
 multiagent-db  | 	FROM results 
-multiagent-db  | 	WHERE results.task_id = '82834780-c325-4813-a0f8-cebd258766f2' 
+multiagent-db  | 	WHERE results.task_id = '5ba9cb43-8314-45cd-90e7-038a68226edf' 
 multiagent-db  | 	 LIMIT 1
-multiagent-db  | 2025-03-20 09:46:59.690 UTC [33] ERROR:  column results.retry_count does not exist at character 294
-multiagent-db  | 2025-03-20 09:46:59.690 UTC [33] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 2025-03-20 11:48:30.523 UTC [67] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:30.523 UTC [67] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:31.605 UTC [67] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:31.605 UTC [67] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
 multiagent-db  | 	FROM results 
-multiagent-db  | 	WHERE results.task_id = '82834780-c325-4813-a0f8-cebd258766f2' 
+multiagent-db  | 	WHERE results.task_id = '5ba9cb43-8314-45cd-90e7-038a68226edf' 
 multiagent-db  | 	 LIMIT 1
-multiagent-db  | 2025-03-20 09:46:59.776 UTC [33] ERROR:  column results.retry_count does not exist at character 294
-multiagent-db  | 2025-03-20 09:46:59.776 UTC [33] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 2025-03-20 11:48:31.622 UTC [67] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:31.622 UTC [67] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:32.671 UTC [67] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:32.671 UTC [67] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
 multiagent-db  | 	FROM results 
-multiagent-db  | 	WHERE results.task_id = '82834780-c325-4813-a0f8-cebd258766f2' 
+multiagent-db  | 	WHERE results.task_id = '5ba9cb43-8314-45cd-90e7-038a68226edf' 
 multiagent-db  | 	 LIMIT 1
-multiagent-db  | 2025-03-20 09:47:00.807 UTC [33] ERROR:  column results.retry_count does not exist at character 294
-multiagent-db  | 2025-03-20 09:47:00.807 UTC [33] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 2025-03-20 11:48:32.685 UTC [67] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:32.685 UTC [67] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:32.818 UTC [67] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:32.818 UTC [67] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
 multiagent-db  | 	FROM results 
-multiagent-db  | 	WHERE results.task_id = '82834780-c325-4813-a0f8-cebd258766f2' 
+multiagent-db  | 	WHERE results.task_id = 'cdc5265d-186c-4b87-a949-633ea112b447' 
 multiagent-db  | 	 LIMIT 1
-multiagent-db  | 2025-03-20 09:47:01.833 UTC [33] ERROR:  column results.retry_count does not exist at character 294
-multiagent-db  | 2025-03-20 09:47:01.833 UTC [33] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 2025-03-20 11:48:32.825 UTC [67] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:32.825 UTC [67] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:33.527 UTC [67] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:33.527 UTC [67] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
 multiagent-db  | 	FROM results 
-multiagent-db  | 	WHERE results.task_id = '82834780-c325-4813-a0f8-cebd258766f2' 
+multiagent-db  | 	WHERE results.task_id = '5ba9cb43-8314-45cd-90e7-038a68226edf' 
 multiagent-db  | 	 LIMIT 1
-multiagent-db  | 2025-03-20 09:47:01.985 UTC [33] ERROR:  column results.retry_count does not exist at character 294
-multiagent-db  | 2025-03-20 09:47:01.985 UTC [33] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 2025-03-20 11:48:33.538 UTC [67] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:33.538 UTC [67] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:33.871 UTC [67] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:33.871 UTC [67] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
 multiagent-db  | 	FROM results 
-multiagent-db  | 	WHERE results.task_id = '82834780-c325-4813-a0f8-cebd258766f2' 
+multiagent-db  | 	WHERE results.task_id = 'cdc5265d-186c-4b87-a949-633ea112b447' 
 multiagent-db  | 	 LIMIT 1
-multiagent-db  | 2025-03-20 09:47:03.016 UTC [33] ERROR:  column results.retry_count does not exist at character 294
-multiagent-db  | 2025-03-20 09:47:03.016 UTC [33] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 2025-03-20 11:48:33.881 UTC [67] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:33.881 UTC [67] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:34.613 UTC [67] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:34.613 UTC [67] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
 multiagent-db  | 	FROM results 
-multiagent-db  | 	WHERE results.task_id = '82834780-c325-4813-a0f8-cebd258766f2' 
+multiagent-db  | 	WHERE results.task_id = '5ba9cb43-8314-45cd-90e7-038a68226edf' 
 multiagent-db  | 	 LIMIT 1
-multiagent-db  | 2025-03-20 09:47:04.034 UTC [33] ERROR:  column results.retry_count does not exist at character 294
-multiagent-db  | 2025-03-20 09:47:04.034 UTC [33] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 2025-03-20 11:48:34.627 UTC [67] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:34.627 UTC [67] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:34.632 UTC [67] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:34.632 UTC [67] STATEMENT:  SELECT 1
+multiagent-db  | 2025-03-20 11:48:34.949 UTC [69] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:34.949 UTC [69] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
 multiagent-db  | 	FROM results 
-multiagent-db  | 	WHERE results.task_id = '82834780-c325-4813-a0f8-cebd258766f2' 
+multiagent-db  | 	WHERE results.task_id = 'cdc5265d-186c-4b87-a949-633ea112b447' 
 multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:34.953 UTC [69] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:34.953 UTC [69] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:34.989 UTC [69] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:34.989 UTC [69] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '5ba9cb43-8314-45cd-90e7-038a68226edf' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:34.993 UTC [69] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:34.993 UTC [69] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:35.727 UTC [70] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:35.727 UTC [70] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '5ba9cb43-8314-45cd-90e7-038a68226edf' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:35.735 UTC [70] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:35.735 UTC [70] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:35.876 UTC [70] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:35.876 UTC [70] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '5ba9cb43-8314-45cd-90e7-038a68226edf' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:35.892 UTC [70] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:35.892 UTC [70] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:36.023 UTC [69] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:36.023 UTC [69] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '5ba9cb43-8314-45cd-90e7-038a68226edf' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:36.027 UTC [69] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:36.027 UTC [69] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:36.911 UTC [68] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:36.911 UTC [68] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = 'cdc5265d-186c-4b87-a949-633ea112b447' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:36.916 UTC [68] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:36.916 UTC [68] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:36.942 UTC [70] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:36.942 UTC [70] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '5ba9cb43-8314-45cd-90e7-038a68226edf' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:36.947 UTC [70] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:36.947 UTC [70] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:37.126 UTC [69] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:37.126 UTC [69] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '5ba9cb43-8314-45cd-90e7-038a68226edf' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:37.135 UTC [69] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:37.135 UTC [69] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:37.259 UTC [69] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:37.259 UTC [69] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '5ba9cb43-8314-45cd-90e7-038a68226edf' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:37.286 UTC [69] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:37.286 UTC [69] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:37.983 UTC [68] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:37.983 UTC [68] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = 'cdc5265d-186c-4b87-a949-633ea112b447' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:38.001 UTC [68] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:38.001 UTC [68] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:38.016 UTC [70] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:38.016 UTC [70] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '5ba9cb43-8314-45cd-90e7-038a68226edf' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:38.022 UTC [70] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:38.022 UTC [70] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:38.362 UTC [69] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:38.362 UTC [69] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '5ba9cb43-8314-45cd-90e7-038a68226edf' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:38.375 UTC [69] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:38.375 UTC [69] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:39.059 UTC [68] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:39.059 UTC [68] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = 'cdc5265d-186c-4b87-a949-633ea112b447' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:39.065 UTC [68] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:39.065 UTC [68] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:39.432 UTC [69] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:39.432 UTC [69] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '5ba9cb43-8314-45cd-90e7-038a68226edf' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:39.440 UTC [69] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:39.440 UTC [69] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:40.455 UTC [68] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:40.455 UTC [68] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = 'cdc5265d-186c-4b87-a949-633ea112b447' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:40.467 UTC [68] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:40.467 UTC [68] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:40.473 UTC [71] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:40.473 UTC [71] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = 'cdc5265d-186c-4b87-a949-633ea112b447' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:40.482 UTC [71] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:40.482 UTC [71] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:40.506 UTC [69] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:40.506 UTC [69] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = 'cdc5265d-186c-4b87-a949-633ea112b447' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:40.525 UTC [69] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:40.525 UTC [69] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:41.519 UTC [68] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:41.519 UTC [68] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = 'cdc5265d-186c-4b87-a949-633ea112b447' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:41.528 UTC [68] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:41.528 UTC [68] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:41.560 UTC [69] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:41.560 UTC [69] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = 'cdc5265d-186c-4b87-a949-633ea112b447' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:41.564 UTC [69] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:41.564 UTC [69] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:42.547 UTC [68] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:42.547 UTC [68] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = 'cdc5265d-186c-4b87-a949-633ea112b447' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:42.551 UTC [68] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:42.551 UTC [68] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:42.605 UTC [69] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:42.605 UTC [69] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = 'cdc5265d-186c-4b87-a949-633ea112b447' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:42.613 UTC [69] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:42.613 UTC [69] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:42.708 UTC [68] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:42.708 UTC [68] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = 'cdc5265d-186c-4b87-a949-633ea112b447' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:42.717 UTC [68] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:42.717 UTC [68] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:43.751 UTC [68] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:43.751 UTC [68] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = 'cdc5265d-186c-4b87-a949-633ea112b447' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:43.756 UTC [68] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:43.756 UTC [68] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+multiagent-db  | 2025-03-20 11:48:44.779 UTC [68] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 11:48:44.779 UTC [68] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = 'cdc5265d-186c-4b87-a949-633ea112b447' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 11:48:44.783 UTC [68] ERROR:  current transaction is aborted, commands ignored until end of transaction block
+multiagent-db  | 2025-03-20 11:48:44.783 UTC [68] STATEMENT:  SET TRANSACTION ISOLATION LEVEL READ COMMITTED
