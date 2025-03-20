@@ -1,0 +1,125 @@
+time="2025-03-20T10:33:01Z" level=warning msg="/workspaces/agents/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+multiagent-db  | 
+multiagent-db  | PostgreSQL Database directory appears to contain a database; Skipping initialization
+multiagent-db  | 
+multiagent-db  | 2025-03-20 10:24:44.379 UTC [1] LOG:  starting PostgreSQL 14.17 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+multiagent-db  | 2025-03-20 10:24:44.380 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+multiagent-db  | 2025-03-20 10:24:44.380 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+multiagent-db  | 2025-03-20 10:24:44.393 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+multiagent-db  | 2025-03-20 10:24:44.419 UTC [26] LOG:  database system was shut down at 2025-03-20 10:24:18 UTC
+multiagent-db  | 2025-03-20 10:24:44.461 UTC [1] LOG:  database system is ready to accept connections
+multiagent-db  | 2025-03-20 10:25:26.001 UTC [34] ERROR:  relation "idx_provider_capabilities_provider_id_type" already exists
+multiagent-db  | 2025-03-20 10:25:26.001 UTC [34] STATEMENT:  CREATE INDEX idx_provider_capabilities_provider_id_type ON provider_capabilities (provider_id, capability_type)
+multiagent-db  | 2025-03-20 10:25:26.029 UTC [34] ERROR:  relation "idx_provider_performances_provider_task" already exists
+multiagent-db  | 2025-03-20 10:25:26.029 UTC [34] STATEMENT:  CREATE INDEX idx_provider_performances_provider_task ON provider_performances (provider_id, task_type)
+multiagent-db  | 2025-03-20 10:25:26.033 UTC [34] ERROR:  relation "idx_provider_performances_recorded_at" already exists
+multiagent-db  | 2025-03-20 10:25:26.033 UTC [34] STATEMENT:  CREATE INDEX idx_provider_performances_recorded_at ON provider_performances (recorded_at)
+multiagent-db  | 2025-03-20 10:25:26.061 UTC [34] ERROR:  relation "idx_results_status_created_at" already exists
+multiagent-db  | 2025-03-20 10:25:26.061 UTC [34] STATEMENT:  CREATE INDEX idx_results_status_created_at ON results (status, created_at)
+multiagent-db  | 2025-03-20 10:25:26.065 UTC [34] ERROR:  relation "idx_results_celery_task_id" already exists
+multiagent-db  | 2025-03-20 10:25:26.065 UTC [34] STATEMENT:  CREATE INDEX idx_results_celery_task_id ON results (celery_task_id)
+multiagent-db  | 2025-03-20 10:25:26.068 UTC [34] ERROR:  relation "idx_results_query_workflow" already exists
+multiagent-db  | 2025-03-20 10:25:26.068 UTC [34] STATEMENT:  CREATE INDEX idx_results_query_workflow ON results (query, workflow)
+multiagent-db  | 2025-03-20 10:25:26.114 UTC [34] ERROR:  relation "idx_api_requests_method_path" already exists
+multiagent-db  | 2025-03-20 10:25:26.114 UTC [34] STATEMENT:  CREATE INDEX idx_api_requests_method_path ON api_requests (method, path)
+multiagent-db  | 2025-03-20 10:25:26.117 UTC [34] ERROR:  relation "idx_api_requests_created_at" already exists
+multiagent-db  | 2025-03-20 10:25:26.117 UTC [34] STATEMENT:  CREATE INDEX idx_api_requests_created_at ON api_requests (created_at)
+multiagent-db  | 2025-03-20 10:25:26.155 UTC [34] ERROR:  relation "idx_agent_metrics_agent_task" already exists
+multiagent-db  | 2025-03-20 10:25:26.155 UTC [34] STATEMENT:  CREATE INDEX idx_agent_metrics_agent_task ON agent_metrics (agent_id, task_type)
+multiagent-db  | 2025-03-20 10:25:26.160 UTC [34] ERROR:  relation "idx_agent_metrics_last_executed_at" already exists
+multiagent-db  | 2025-03-20 10:25:26.160 UTC [34] STATEMENT:  CREATE INDEX idx_agent_metrics_last_executed_at ON agent_metrics (last_executed_at)
+multiagent-db  | 2025-03-20 10:25:53.786 UTC [36] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:25:53.786 UTC [36] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '7ddbccc4-8b9a-4b97-8fab-63e4db8c4330' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 10:25:54.142 UTC [36] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:25:54.142 UTC [36] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '7ddbccc4-8b9a-4b97-8fab-63e4db8c4330' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 10:25:55.191 UTC [36] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:25:55.191 UTC [36] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '7ddbccc4-8b9a-4b97-8fab-63e4db8c4330' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 10:25:56.231 UTC [36] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:25:56.231 UTC [36] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '7ddbccc4-8b9a-4b97-8fab-63e4db8c4330' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 10:25:56.273 UTC [36] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:25:56.273 UTC [36] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '7ddbccc4-8b9a-4b97-8fab-63e4db8c4330' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 10:25:57.297 UTC [36] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:25:57.297 UTC [36] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '7ddbccc4-8b9a-4b97-8fab-63e4db8c4330' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 10:25:57.954 UTC [36] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:25:57.954 UTC [36] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '7ddbccc4-8b9a-4b97-8fab-63e4db8c4330' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 10:25:58.320 UTC [36] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:25:58.320 UTC [36] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '7ddbccc4-8b9a-4b97-8fab-63e4db8c4330' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 10:25:58.991 UTC [36] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:25:58.991 UTC [36] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '7ddbccc4-8b9a-4b97-8fab-63e4db8c4330' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 10:26:00.008 UTC [36] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:26:00.008 UTC [36] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '7ddbccc4-8b9a-4b97-8fab-63e4db8c4330' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 10:28:01.368 UTC [36] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:28:01.368 UTC [36] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '29834e16-81a4-44bf-9b25-297d9b165456' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 10:28:01.461 UTC [36] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:28:01.461 UTC [36] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '29834e16-81a4-44bf-9b25-297d9b165456' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 10:28:01.522 UTC [36] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:28:01.522 UTC [36] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '29834e16-81a4-44bf-9b25-297d9b165456' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 10:28:02.521 UTC [36] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:28:02.521 UTC [36] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '29834e16-81a4-44bf-9b25-297d9b165456' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 10:28:02.542 UTC [36] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:28:02.542 UTC [36] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '29834e16-81a4-44bf-9b25-297d9b165456' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 10:28:03.550 UTC [36] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:28:03.550 UTC [36] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '29834e16-81a4-44bf-9b25-297d9b165456' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 10:28:03.702 UTC [41] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:28:03.702 UTC [41] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '29834e16-81a4-44bf-9b25-297d9b165456' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 10:28:04.733 UTC [41] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:28:04.733 UTC [41] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '29834e16-81a4-44bf-9b25-297d9b165456' 
+multiagent-db  | 	 LIMIT 1
+multiagent-db  | 2025-03-20 10:28:05.747 UTC [41] ERROR:  column results.retry_count does not exist at character 294
+multiagent-db  | 2025-03-20 10:28:05.747 UTC [41] STATEMENT:  SELECT results.id AS results_id, results.task_id AS results_task_id, results.celery_task_id AS results_celery_task_id, results.query AS results_query, results.user_id AS results_user_id, results.workflow AS results_workflow, results.result AS results_result, results.status AS results_status, results.retry_count AS results_retry_count, results.last_error AS results_last_error, results.created_at AS results_created_at, results.updated_at AS results_updated_at 
+multiagent-db  | 	FROM results 
+multiagent-db  | 	WHERE results.task_id = '29834e16-81a4-44bf-9b25-297d9b165456' 
+multiagent-db  | 	 LIMIT 1

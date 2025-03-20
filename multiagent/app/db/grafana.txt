@@ -1,0 +1,71 @@
+time="2025-03-20T10:33:01Z" level=warning msg="/workspaces/agents/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.98861594Z level=info msg="Starting Grafana" version=11.5.2 commit=598e0338d5374d6bc404b02a58094132c5eeceb8 branch=HEAD compiled=2025-03-20T10:24:44Z
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989075397Z level=info msg="Config loaded from" file=/usr/share/grafana/conf/defaults.ini
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989085646Z level=info msg="Config loaded from" file=/etc/grafana/grafana.ini
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989091096Z level=info msg="Config overridden from command line" arg="default.paths.data=/var/lib/grafana"
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989096156Z level=info msg="Config overridden from command line" arg="default.paths.logs=/var/log/grafana"
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989101335Z level=info msg="Config overridden from command line" arg="default.paths.plugins=/var/lib/grafana/plugins"
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989106695Z level=info msg="Config overridden from command line" arg="default.paths.provisioning=/etc/grafana/provisioning"
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989111765Z level=info msg="Config overridden from command line" arg="default.log.mode=console"
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989117525Z level=info msg="Config overridden from Environment variable" var="GF_PATHS_DATA=/var/lib/grafana"
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989124318Z level=info msg="Config overridden from Environment variable" var="GF_PATHS_LOGS=/var/log/grafana"
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989129267Z level=info msg="Config overridden from Environment variable" var="GF_PATHS_PLUGINS=/var/lib/grafana/plugins"
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989134296Z level=info msg="Config overridden from Environment variable" var="GF_PATHS_PROVISIONING=/etc/grafana/provisioning"
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989139105Z level=info msg="Config overridden from Environment variable" var="GF_SECURITY_ADMIN_USER=admin"
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989144015Z level=info msg="Config overridden from Environment variable" var="GF_SECURITY_ADMIN_PASSWORD=*********"
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989148984Z level=info msg=Target target=[all]
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989160956Z level=info msg="Path Home" path=/usr/share/grafana
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989165845Z level=info msg="Path Data" path=/var/lib/grafana
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989170865Z level=info msg="Path Logs" path=/var/log/grafana
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989175734Z level=info msg="Path Plugins" path=/var/lib/grafana/plugins
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989180683Z level=info msg="Path Provisioning" path=/etc/grafana/provisioning
+multiagent-grafana  | logger=settings t=2025-03-20T10:24:44.989185702Z level=info msg="App mode production"
+multiagent-grafana  | logger=featuremgmt t=2025-03-20T10:24:44.992481938Z level=info msg=FeatureToggles annotationPermissionUpdate=true accessActionSets=true dashboardSceneForViewers=true newFiltersUI=true managedPluginsInstall=true useSessionStorageForRedirection=true logsInfiniteScrolling=true formatString=true onPremToCloudMigrations=true nestedFolders=true exploreMetrics=true accessControlOnCall=true angularDeprecationUI=true transformationsVariableSupport=true alertingUIOptimizeReducer=true correlations=true reportingUseRawTimeRange=true groupToNestedTableTransformation=true openSearchBackendFlowEnabled=true lokiStructuredMetadata=true lokiQuerySplitting=true alertingApiServer=true unifiedRequestLog=true addFieldFromCalculationStatFunctions=true pinNavItems=true azureMonitorEnableUserAuth=true tlsMemcached=true kubernetesPlaylists=true cloudWatchNewLabelParsing=true lokiQueryHints=true prometheusAzureOverrideAudience=true cloudWatchCrossAccountQuerying=true awsAsyncQueryCaching=true logsContextDatasourceUi=true dashboardScene=true userStorageAPI=true recoveryThreshold=true ssoSettingsApi=true promQLScope=true recordedQueriesMulti=true dataplaneFrontendFallback=true dashboardSceneSolo=true alertingInsights=true zipkinBackendMigration=true panelMonitoring=true transformationsRedesign=true influxdbBackendMigration=true logRowsPopoverMenu=true publicDashboardsScene=true preinstallAutoUpdate=true newDashboardSharingComponent=true dashgpt=true alertingNoDataErrorExecution=true newPDFRendering=true cloudWatchRoundUpEndTime=true logsExploreTableVisualisation=true lokiLabelNamesQueryApi=true alertingSimplifiedRouting=true
+multiagent-grafana  | logger=sqlstore t=2025-03-20T10:24:44.992581684Z level=info msg="Connecting to DB" dbtype=sqlite3
+multiagent-grafana  | logger=migrator t=2025-03-20T10:24:45.043377894Z level=info msg="Locking database"
+multiagent-grafana  | logger=migrator t=2025-03-20T10:24:45.043438888Z level=info msg="Starting DB migrations"
+multiagent-grafana  | logger=migrator t=2025-03-20T10:24:45.171626475Z level=info msg="migrations completed" performed=0 skipped=629 duration=5.099428ms
+multiagent-grafana  | logger=migrator t=2025-03-20T10:24:45.174421687Z level=info msg="Unlocking database"
+multiagent-grafana  | logger=secrets t=2025-03-20T10:24:45.176959178Z level=info msg="Envelope encryption state" enabled=true currentprovider=secretKey.v1
+multiagent-grafana  | logger=plugin.angulardetectorsprovider.dynamic t=2025-03-20T10:24:45.391764956Z level=info msg="Restored cache from database" duration=619.906µs
+multiagent-grafana  | logger=plugin.store t=2025-03-20T10:24:45.409540236Z level=info msg="Loading plugins..."
+multiagent-grafana  | logger=local.finder t=2025-03-20T10:24:45.859009299Z level=warn msg="Skipping finding plugins as directory does not exist" path=/usr/share/grafana/plugins-bundled
+multiagent-grafana  | logger=plugins.registration t=2025-03-20T10:24:46.108980743Z level=info msg="Plugin registered" pluginId=grafana-lokiexplore-app
+multiagent-grafana  | logger=plugins.registration t=2025-03-20T10:24:46.439247901Z level=info msg="Plugin registered" pluginId=grafana-pyroscope-app
+multiagent-grafana  | logger=plugin.store t=2025-03-20T10:24:46.439284489Z level=info msg="Plugins loaded" count=56 duration=1.029744863s
+multiagent-grafana  | logger=resource-migrator t=2025-03-20T10:24:46.451590483Z level=info msg="Locking database"
+multiagent-grafana  | logger=resource-migrator t=2025-03-20T10:24:46.451677445Z level=info msg="Starting DB migrations"
+multiagent-grafana  | logger=resource-migrator t=2025-03-20T10:24:46.455661313Z level=info msg="migrations completed" performed=0 skipped=22 duration=54.242µs
+multiagent-grafana  | logger=resource-migrator t=2025-03-20T10:24:46.457797567Z level=info msg="Unlocking database"
+multiagent-grafana  | logger=query_data t=2025-03-20T10:24:46.482560395Z level=info msg="Query Service initialization"
+multiagent-grafana  | logger=live.push_http t=2025-03-20T10:24:46.499667253Z level=info msg="Live Push Gateway initialization"
+multiagent-grafana  | logger=ngalert.notifier.alertmanager org=1 t=2025-03-20T10:24:46.525705071Z level=info msg="Applying new configuration to Alertmanager" configHash=d2c56faca6af2a5772ff4253222f7386
+multiagent-grafana  | logger=ngalert.state.manager t=2025-03-20T10:24:46.560307916Z level=info msg="Running in alternative execution of Error/NoData mode"
+multiagent-grafana  | logger=cloudmigration.service t=2025-03-20T10:24:46.576588281Z level=info msg="using gcom client for auth"
+multiagent-grafana  | logger=infra.usagestats.collector t=2025-03-20T10:24:46.576777454Z level=info msg="registering usage stat providers" usageStatsProvidersLen=2
+multiagent-grafana  | logger=provisioning.alerting t=2025-03-20T10:24:46.585368271Z level=info msg="starting to provision alerting"
+multiagent-grafana  | logger=provisioning.alerting t=2025-03-20T10:24:46.585388028Z level=info msg="finished to provision alerting"
+multiagent-grafana  | logger=provisioning.dashboard t=2025-03-20T10:24:46.595876244Z level=info msg="starting to provision dashboards"
+multiagent-grafana  | logger=provisioning.dashboard t=2025-03-20T10:24:46.595898716Z level=info msg="finished to provision dashboards"
+multiagent-grafana  | logger=ngalert.state.manager t=2025-03-20T10:24:46.597141763Z level=info msg="Warming state cache for startup"
+multiagent-grafana  | logger=ngalert.multiorg.alertmanager t=2025-03-20T10:24:46.599136863Z level=info msg="Starting MultiOrg Alertmanager"
+multiagent-grafana  | logger=grafanaStorageLogger t=2025-03-20T10:24:46.605235895Z level=info msg="Storage starting"
+multiagent-grafana  | logger=ngalert.state.manager t=2025-03-20T10:24:46.628876844Z level=info msg="State cache has been initialized" states=0 duration=31.733568ms
+multiagent-grafana  | logger=ngalert.scheduler t=2025-03-20T10:24:46.631373709Z level=info msg="Starting scheduler" tickInterval=10s maxAttempts=3
+multiagent-grafana  | logger=http.server t=2025-03-20T10:24:46.635253563Z level=info msg="HTTP Server Listen" address=[::]:3000 protocol=http subUrl= socket=
+multiagent-grafana  | logger=ticker t=2025-03-20T10:24:46.639295209Z level=info msg=starting first_tick=2025-03-20T10:24:50Z
+multiagent-grafana  | logger=plugins.update.checker t=2025-03-20T10:24:47.414741628Z level=info msg="Update check succeeded" duration=816.13345ms
+multiagent-grafana  | logger=grafana.update.checker t=2025-03-20T10:24:47.419229756Z level=info msg="Update check succeeded" duration=823.299461ms
+multiagent-grafana  | logger=grafana-apiserver t=2025-03-20T10:24:47.498345831Z level=info msg="Adding GroupVersion notifications.alerting.grafana.app v0alpha1 to ResourceManager"
+multiagent-grafana  | logger=grafana-apiserver t=2025-03-20T10:24:47.499700316Z level=info msg="Adding GroupVersion userstorage.grafana.app v0alpha1 to ResourceManager"
+multiagent-grafana  | logger=grafana-apiserver t=2025-03-20T10:24:47.50640129Z level=info msg="Adding GroupVersion playlist.grafana.app v0alpha1 to ResourceManager"
+multiagent-grafana  | logger=resource-server t=2025-03-20T10:24:47.507331395Z level=warn msg="failed to register storage metrics" error="duplicate metrics collector registration attempted"
+multiagent-grafana  | logger=resource-server t=2025-03-20T10:24:47.508233126Z level=warn msg="failed to register storage metrics" error="duplicate metrics collector registration attempted"
+multiagent-grafana  | logger=resource-server t=2025-03-20T10:24:47.508323494Z level=warn msg="failed to register storage metrics" error="duplicate metrics collector registration attempted"
+multiagent-grafana  | logger=grafana-apiserver t=2025-03-20T10:24:47.517737447Z level=info msg="Adding GroupVersion dashboard.grafana.app v0alpha1 to ResourceManager"
+multiagent-grafana  | logger=grafana-apiserver t=2025-03-20T10:24:47.544983377Z level=info msg="Adding GroupVersion dashboard.grafana.app v1alpha1 to ResourceManager"
+multiagent-grafana  | logger=grafana-apiserver t=2025-03-20T10:24:47.556941433Z level=info msg="Adding GroupVersion dashboard.grafana.app v2alpha1 to ResourceManager"
+multiagent-grafana  | logger=grafana-apiserver t=2025-03-20T10:24:47.560009664Z level=info msg="Adding GroupVersion featuretoggle.grafana.app v0alpha1 to ResourceManager"
+multiagent-grafana  | logger=grafana-apiserver t=2025-03-20T10:24:47.57309942Z level=info msg="Adding GroupVersion iam.grafana.app v0alpha1 to ResourceManager"
+multiagent-grafana  | logger=app-registry t=2025-03-20T10:24:47.681994384Z level=info msg="app registry initialized"
+multiagent-grafana  | logger=infra.usagestats t=2025-03-20T10:26:26.631391171Z level=info msg="Usage stats are ready to report"

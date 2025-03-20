@@ -1,0 +1,19 @@
+time="2025-03-20T10:33:00Z" level=warning msg="/workspaces/agents/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+redis  | 1:C 20 Mar 2025 10:24:43.282 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+redis  | 1:C 20 Mar 2025 10:24:43.282 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+redis  | 1:C 20 Mar 2025 10:24:43.282 * Redis version=7.4.2, bits=64, commit=00000000, modified=0, pid=1, just started
+redis  | 1:C 20 Mar 2025 10:24:43.282 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
+redis  | 1:M 20 Mar 2025 10:24:43.282 * monotonic clock: POSIX clock_gettime
+redis  | 1:M 20 Mar 2025 10:24:43.283 * Running mode=standalone, port=6379.
+redis  | 1:M 20 Mar 2025 10:24:43.283 * Server initialized
+redis  | 1:M 20 Mar 2025 10:24:43.283 * Loading RDB produced by version 7.4.2
+redis  | 1:M 20 Mar 2025 10:24:43.283 * RDB age 22 seconds
+redis  | 1:M 20 Mar 2025 10:24:43.283 * RDB memory usage when created 1.53 Mb
+redis  | 1:M 20 Mar 2025 10:24:43.283 * Done loading RDB, keys loaded: 34, keys expired: 0.
+redis  | 1:M 20 Mar 2025 10:24:43.283 * DB loaded from disk: 0.000 seconds
+redis  | 1:M 20 Mar 2025 10:24:43.283 * Ready to accept connections tcp
+redis  | 1:M 20 Mar 2025 10:29:44.061 * 100 changes in 300 seconds. Saving...
+redis  | 1:M 20 Mar 2025 10:29:44.062 * Background saving started by pid 372
+redis  | 372:C 20 Mar 2025 10:29:44.068 * DB saved on disk
+redis  | 372:C 20 Mar 2025 10:29:44.068 * Fork CoW for RDB: current 0 MB, peak 0 MB, average 0 MB
+redis  | 1:M 20 Mar 2025 10:29:44.163 * Background saving terminated with success
