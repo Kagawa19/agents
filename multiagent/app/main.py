@@ -119,11 +119,14 @@ async def api_get_query_result(
 ):
     """Get the result of a submitted query."""
     try:
-        result = await get_query_result(task_id, db)
+        # Only pass the task_id parameter, not db
+        result = await get_query_result(task_id)
+        
         return StandardResponse(
             success=True,
             message="Query result retrieved successfully",
-            data=result
+            data=result,
+            status="success"  # Make sure to include status if required by your model
         )
     except Exception as e:
         logger.error(f"Error retrieving query result: {str(e)}")
