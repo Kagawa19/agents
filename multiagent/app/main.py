@@ -72,22 +72,27 @@ async def health_check():
 @app.post("/api/query", response_model=StandardResponse)
 async def api_submit_query(
     query_request: QueryRequest,
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
-    """Submit a query to the system."""
+    """
+    Submit a query to the system and return the complete result.
+    
+    This endpoint directly executes the query and returns the full result
+    without any asynchronous processing or waiting.
+    """
     try:
         # Convert QueryRequest to a dictionary to match the submit_query function signature
         query_data = query_request.dict()
         
-        # Call submit_query with just the query data
-        task_id = await submit_query(query_data)
+        # Call submit_query to get the complete result
+        result = await submit_query(query_data)
         
+        # Return the response with the complete result
         return StandardResponse(
             success=True,
-            message="Query submitted successfully",
-            data={"task_id": task_id},
-            status="success"  # Include the required status field
+            message="Query processed successfully",
+            data=result,
+            status="completed"
         )
     except Exception as e:
         logger.error(f"Error submitting query: {str(e)}")

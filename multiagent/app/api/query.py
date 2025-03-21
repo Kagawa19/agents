@@ -84,45 +84,68 @@ tracer = LangfuseTracer(
     host=os.getenv("LANGFUSE_HOST", "https://api.langfuse.com")
 )
 
+def datetime_serializer(obj):
+    """
+    JSON serializer for objects not serializable by default json code,
+    specifically handling datetime objects.
+    
+    Args:
+        obj: Object to serialize
+        
+    Returns:
+        Serialized representation of the object
+    """
+    from datetime import datetime
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    raise TypeError(f"Type {type(obj)} not serializable")
+
+# JSON dumps wrapper with datetime support
+def json_dumps(obj, **kwargs):
+    """
+    Wrapper for json.dumps with datetime support.
+    
+    Args:
+        obj: Object to serialize
+        **kwargs: Additional arguments for json.dumps
+    
+    Returns:
+        JSON string
+    """
+    import json
+    return json.dumps(obj, default=datetime_serializer, **kwargs)
+
 async def submit_query(query_data: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Receives user query, validates it, and submits task to the queue.
+    Directly executes the query and returns the complete result.
     
     Args:
         query_data: Query parameters including the query text
         
     Returns:
-        Dict containing task_id and initial status
+        Complete result of the query execution
     """
-    # Import here to avoid circular imports
-    from multiagent.app.worker.tasks import execute_workflow_task
-    from multiagent.app.db.models import Result
-    from multiagent.app.db.results import crud_result
-    from sqlalchemy.orm import Session
+    # Import necessary modules
     from multiagent.app.db.session import SessionLocal
+    from multiagent.app.orchestrator.manager import AgentManager
+    from multiagent.app.orchestrator.workflow import WorkflowManager
+    from multiagent.app.monitoring.tracer import get_tracer
+    from multiagent.app.core.config import settings
     
-    # Debug point 1: Log incoming query data
-    logger.debug(f"🔍 Received query data: {json.dumps(query_data, indent=2)}")
-    print(f"\n=== QUERY SUBMISSION STARTED ===\nQuery Data: {pprint.pformat(query_data)}\n")
-    
-    # Create QueryRequest for validation
+    # Create request object for validation
     request = QueryRequest(**query_data)
     
     # Check if request is valid
     if not request.validate():
         logger.error(f"❌ Invalid query parameters: {query_data}")
-        print(f"ERROR: Invalid query parameters: {query_data}")
         raise ValueError("Invalid query parameters")
     
-    # Generate task ID
+    # Generate task ID for tracing
     task_id = str(uuid.uuid4())
-    
-    # Debug point 2: Log task ID
-    logger.debug(f"🆔 Generated task_id: {task_id}")
-    print(f"Generated task_id: {task_id}")
     
     # Create trace for monitoring
     try:
+        tracer = get_tracer()
         trace_id_obj = tracer.create_trace(
             task_id=task_id,
             name="query_execution",
@@ -132,223 +155,70 @@ async def submit_query(query_data: Dict[str, Any]) -> Dict[str, Any]:
                 "user_id": request.user_id
             }
         )
-        
-        # Debug point 3: Log trace creation
-        logger.debug(f"📊 Created trace: {trace_id_obj}")
-        print(f"Created trace with ID: {trace_id_obj}")
-        
+        trace_id_str = trace_id_obj.get('id') if isinstance(trace_id_obj, dict) else str(trace_id_obj)
     except Exception as trace_error:
         logger.error(f"❌ Error creating trace: {trace_error}")
-        print(f"ERROR: Failed to create trace: {trace_error}")
-        # Continue without trace if it fails
-        trace_id_obj = {"id": "error-creating-trace"}
+        trace_id_str = "error-creating-trace"
     
-    logger.info(f"📝 Submitting query: {request.query[:50]}... (task_id: {task_id})")
-    print(f"Submitting query: {request.query[:50]}... (task_id: {task_id})")
+    # Log request
+    logger.info(f"📝 Executing query directly: {request.query[:50]}... (task_id: {task_id})")
     
-    # Extract just the trace ID string instead of using the whole dictionary
-    trace_id_str = trace_id_obj.get('id') if isinstance(trace_id_obj, dict) else str(trace_id_obj)
-    
-    # Prepare kwargs for task submission
-    task_kwargs = {
-        'workflow_id': request.workflow_type,
-        'input_data': {
+    try:
+        # Initialize components directly
+        tracer = get_tracer()
+        agent_manager = AgentManager(settings, tracer)
+        agent_manager.initialize()
+        workflow_manager = WorkflowManager(agent_manager, tracer)
+        
+        # Set up input data 
+        input_data = {
             'task_id': task_id,
             'query': request.query,
             'user_id': request.user_id,
             'parameters': request.parameters,
             'trace_id': trace_id_str
         }
-    }
-    
-    # Debug point 4: Log task kwargs
-    logger.debug(f"🔧 Task kwargs prepared: {json.dumps(task_kwargs, indent=2)}")
-    print(f"Task kwargs prepared: {pprint.pformat(task_kwargs)}")
-    
-    # Only add priority if it's not None
-    if request.priority is not None:
-        task_kwargs['input_data']['priority'] = request.priority
-        logger.debug(f"⚡ Added priority: {request.priority}")
-        print(f"Added priority: {request.priority}")
-    
-    # Create an initial database entry for the task
-    try:
+        
+        if request.priority is not None:
+            input_data['priority'] = request.priority
+        
+        # Execute workflow directly and wait for the result
+        start_time = time.time()
+        result = await workflow_manager.execute_workflow(request.workflow_type, input_data)
+        execution_time = time.time() - start_time
+        
+        # Add execution time to the result
+        if isinstance(result, dict):
+            result["execution_time"] = execution_time
+        
+        # Save the completed result to database
         with SessionLocal() as db:
-            # Check if database connection is working
-            db_check = db.execute(text("SELECT 1")).scalar()
-            if db_check != 1:
-                logger.error("❌ Database connection check failed!")
-                print("ERROR: Database connection check failed!")
-            else:
-                logger.info("✅ Database connection verified before initial task save")
-                print("Database connection verified")
-                
-            # Save initial task status to database
             from multiagent.app.db.results import crud_result
-            initial_record = crud_result.save_result(
+            crud_result.save_result(
                 db=db,
                 task_id=task_id,
                 query=request.query,
                 workflow=request.workflow_type,
+                result=result,
                 user_id=request.user_id,
-                status="submitted"
+                status="completed"
             )
-            
-            # Explicitly commit
             db.commit()
             
-            # Log the record that was saved
-            if initial_record:
-                logger.info(f"💾 Initial database record created: {initial_record.id}")
-                print(f"Initial database record:\nID: {initial_record.id}\nTask ID: {initial_record.task_id}\nStatus: {initial_record.status}")
-            
-            # Verify the save
-            verification = crud_result.get_by_task_id(db=db, task_id=task_id)
-            if verification:
-                logger.info(f"✅ Initial task record verified in database with id: {verification.id}")
-                print(f"Initial task record verified in database with id: {verification.id}")
-                
-                # Log the full record details
-                record_dict = {
-                    "id": verification.id,
-                    "task_id": verification.task_id,
-                    "query": verification.query[:50] + "..." if verification.query and len(verification.query) > 50 else verification.query,
-                    "user_id": verification.user_id,
-                    "workflow": verification.workflow,
-                    "status": verification.status,
-                    "created_at": verification.created_at.isoformat() if verification.created_at else None,
-                    "updated_at": verification.updated_at.isoformat() if verification.updated_at else None
-                }
-                logger.debug(f"📋 Initial record details: {json.dumps(record_dict, indent=2)}")
-                print(f"Initial record details: {pprint.pformat(record_dict)}")
-            else:
-                logger.warning("⚠️ Could not verify initial task record creation")
-                print("WARNING: Could not verify initial task record creation")
-                
-    except Exception as db_error:
-        logger.error(f"❌ Error creating initial database record: {db_error}", exc_info=True)
-        print(f"ERROR: Failed to create initial database record: {db_error}")
-        # Continue even if initial save fails
-    
-    try:
-        # Debug point 5: Log before task submission
-        logger.info(f"🚀 About to submit task with: workflow_id={request.workflow_type}")
-        print(f"About to submit task with: workflow_id={request.workflow_type}")
+        # Return the complete result
+        logger.info(f"📤 Query executed successfully in {execution_time:.2f} seconds")
+        return result
         
-        # Submit the execute_workflow_task with more detailed logging
-        result = execute_workflow_task.delay(**task_kwargs)
-        
-        # Debug point 6: Log task submission result
-        logger.info(f"✅ Task submitted successfully. Celery task ID: {result.id}")
-        print(f"Task submitted successfully. Celery task ID: {result.id}")
-        logger.debug(f"📋 Celery task result object: {result}")
-        
-        # Update the database record with the Celery task ID
-        try:
-            with SessionLocal() as db:
-                existing_record = crud_result.get_by_task_id(db=db, task_id=task_id)
-                
-                if existing_record:
-                    # Update with Celery task ID
-                    logger.info(f"🔄 Updating record with Celery task ID: {result.id}")
-                    print(f"Updating record with Celery task ID: {result.id}")
-                    
-                    crud_result.update(
-                        db=db,
-                        db_obj=existing_record,
-                        obj_in={"celery_task_id": result.id}
-                    )
-                    db.commit()
-                    logger.info(f"✅ Updated record with Celery task ID: {result.id}")
-                    print(f"Updated record with Celery task ID: {result.id}")
-                    
-                    # Verify the update
-                    updated_record = crud_result.get_by_task_id(db=db, task_id=task_id)
-                    if updated_record and updated_record.celery_task_id == result.id:
-                        logger.info(f"✅ Verified Celery task ID update: {updated_record.celery_task_id}")
-                        print(f"Verified Celery task ID update: {updated_record.celery_task_id}")
-                        
-                        # Log the full updated record
-                        updated_dict = {
-                            "id": updated_record.id,
-                            "task_id": updated_record.task_id,
-                            "celery_task_id": updated_record.celery_task_id,
-                            "query": updated_record.query[:50] + "..." if updated_record.query and len(updated_record.query) > 50 else updated_record.query,
-                            "user_id": updated_record.user_id,
-                            "workflow": updated_record.workflow,
-                            "status": updated_record.status,
-                            "created_at": updated_record.created_at.isoformat() if updated_record.created_at else None,
-                            "updated_at": updated_record.updated_at.isoformat() if updated_record.updated_at else None
-                        }
-                        logger.debug(f"📋 Updated record details: {json.dumps(updated_dict, indent=2)}")
-                        print(f"Updated record details: {pprint.pformat(updated_dict)}")
-                    else:
-                        logger.warning("⚠️ Could not verify Celery task ID update")
-                        print("WARNING: Could not verify Celery task ID update")
-                else:
-                    # Create a new record if update failed
-                    logger.warning("⚠️ No existing record found, creating new record as fallback")
-                    print("WARNING: No existing record found, creating new record")
-                    
-                    new_record = crud_result.save_result(
-                        db=db,
-                        task_id=task_id,
-                        query=request.query,
-                        workflow=request.workflow_type,
-                        status="submitted",
-                        user_id=request.user_id,
-                        celery_task_id=result.id
-                    )
-                    db.commit()
-                    logger.info("✅ Created new record with Celery task ID as fallback")
-                    print("Created new record with Celery task ID as fallback")
-                    
-                    # Log the full new record
-                    if new_record:
-                        new_dict = {
-                            "id": new_record.id,
-                            "task_id": new_record.task_id,
-                            "celery_task_id": new_record.celery_task_id,
-                            "query": new_record.query[:50] + "..." if new_record.query and len(new_record.query) > 50 else new_record.query,
-                            "user_id": new_record.user_id,
-                            "workflow": new_record.workflow,
-                            "status": new_record.status,
-                            "created_at": new_record.created_at.isoformat() if new_record.created_at else None,
-                            "updated_at": new_record.updated_at.isoformat() if new_record.updated_at else None
-                        }
-                        logger.debug(f"📋 New record details: {json.dumps(new_dict, indent=2)}")
-                        print(f"New record details: {pprint.pformat(new_dict)}")
-        except Exception as update_error:
-            logger.error(f"❌ Failed to update record with Celery task ID: {update_error}", exc_info=True)
-            print(f"ERROR: Failed to update record with Celery task ID: {update_error}")
-        
-        # Add additional debugging information in the response
-        response_data = {
-            "task_id": task_id,
-            "celery_task_id": result.id,
-            "status": "submitted",
-            "submitted_at": datetime.utcnow().isoformat(),
-            "workflow_type": request.workflow_type
-        }
-        
-        logger.info(f"📤 Returning response: {json.dumps(response_data, indent=2)}")
-        print(f"\n=== QUERY SUBMISSION COMPLETED ===\nResponse: {pprint.pformat(response_data)}\n")
-        
-        return response_data
     except Exception as e:
-        # Log detailed error information with better formatting
-        logger.error(f"❌ Task submission failed: {str(e)}") 
-        logger.error(f"🔧 Task kwargs: {json.dumps(task_kwargs, indent=2)}")
-        # Include more details about the exception for debugging
-        logger.error(f"🐞 Exception type: {type(e)}")
+        # Log error
+        logger.error(f"❌ Query execution failed: {str(e)}")
         logger.error(f"📜 Traceback: {traceback.format_exc()}")
-        print(f"\nERROR: Task submission failed: {str(e)}")
-        print(f"Exception type: {type(e)}")
         
         # Try to save error to database
         try:
             with SessionLocal() as db:
-                error_record = crud_result.save_result(
+                from multiagent.app.db.results import crud_result
+                crud_result.save_result(
                     db=db,
                     task_id=task_id,
                     query=request.query,
@@ -358,24 +228,10 @@ async def submit_query(query_data: Dict[str, Any]) -> Dict[str, Any]:
                     result={"error": str(e)}
                 )
                 db.commit()
-                logger.info("💾 Saved submission error to database")
-                print("Saved submission error to database")
-                
-                # Log the error record
-                if error_record:
-                    error_dict = {
-                        "id": error_record.id,
-                        "task_id": error_record.task_id,
-                        "status": error_record.status,
-                        "result": error_record.result
-                    }
-                    logger.debug(f"📋 Error record details: {json.dumps(error_dict, indent=2)}")
-                    print(f"Error record details: {pprint.pformat(error_dict)}")
         except Exception as db_error:
-            logger.error(f"❌ Failed to save submission error to database: {db_error}")
-            print(f"ERROR: Failed to save submission error to database: {db_error}")
+            logger.error(f"❌ Failed to save error to database: {db_error}")
             
-        print(f"\n=== QUERY SUBMISSION FAILED ===\n")
+        # Re-raise the exception
         raise
 
 async def update_task_progress(
@@ -631,7 +487,7 @@ async def get_query_status(task_id: str) -> Dict[str, Any]:
                     logger.info(f"✅ Found task {task_id} in database with status: {db_record.status}")
                     print(f"Found task {task_id} in database with status: {db_record.status}")
                     
-                    # Log the full record details
+                    # Log the full record details - using str representation to avoid serialization issues
                     record_dict = {
                         "id": db_record.id,
                         "task_id": db_record.task_id,
@@ -640,10 +496,10 @@ async def get_query_status(task_id: str) -> Dict[str, Any]:
                         "created_at": db_record.created_at.isoformat() if db_record.created_at else None,
                         "updated_at": db_record.updated_at.isoformat() if db_record.updated_at else None
                     }
-                    logger.debug(f"📋 Database record details: {json.dumps(record_dict, indent=2)}")
+                    logger.debug(f"📋 Database record details: {json_dumps(record_dict, indent=2)}")
                     print(f"Database record details: {pprint.pformat(record_dict)}")
                     
-                    # Format as QueryStatus
+                    # Format as QueryStatus - with datetime conversion
                     db_status = QueryStatus(
                         task_id=task_id,
                         status=db_record.status,
@@ -657,7 +513,13 @@ async def get_query_status(task_id: str) -> Dict[str, Any]:
                     # If the task is completed or failed, just return the database status
                     if db_record.status in ["completed", "failed"]:
                         status_dict = db_status.dict()
-                        logger.info(f"📤 Returning final status from database: {json.dumps(status_dict, indent=2)}")
+                        # Convert datetime objects to strings for JSON serialization
+                        if status_dict.get("started_at"):
+                            status_dict["started_at"] = status_dict["started_at"].isoformat()
+                        if status_dict.get("updated_at"):
+                            status_dict["updated_at"] = status_dict["updated_at"].isoformat()
+                            
+                        logger.info(f"📤 Returning final status from database: {json_dumps(status_dict, indent=2)}")
                         print(f"Returning final status from database: {pprint.pformat(status_dict)}")
                         print(f"\n=== TASK STATUS CHECK COMPLETED ===\n")
                         return status_dict
@@ -666,7 +528,7 @@ async def get_query_status(task_id: str) -> Dict[str, Any]:
                     logger.info("🔄 Task is in progress, checking task queue for more details")
                     print("Task is in progress, checking task queue for more details")
         except Exception as db_error:
-            logger.error(f"❌ Error getting status from database: {db_error}", exc_info=True)
+            logger.error(f"❌ Error getting status from database: {str(db_error)}", exc_info=True)
             print(f"ERROR: Error getting status from database: {db_error}")
         
         # Get status from task queue for more detailed progress info
@@ -674,7 +536,8 @@ async def get_query_status(task_id: str) -> Dict[str, Any]:
         print(f"Checking task queue for status of task: {task_id}")
         status_data = await task_queue.get_task_status(task_id)
         
-        logger.debug(f"📊 Retrieved status data from queue: {json.dumps(status_data, indent=2) if status_data else None}")
+        # Log status data safely
+        logger.debug(f"📊 Retrieved status data from queue: {json_dumps(status_data, indent=2) if status_data else None}")
         print(f"Retrieved status data from queue: {pprint.pformat(status_data) if status_data else None}")
         
         if not status_data:
@@ -700,7 +563,13 @@ async def get_query_status(task_id: str) -> Dict[str, Any]:
                             updated_at=db_record.updated_at
                         ).dict()
                         
-                        logger.info(f"📤 Returning fallback status from database: {json.dumps(status_dict, indent=2)}")
+                        # Convert datetime objects to strings for JSON serialization
+                        if status_dict.get("started_at"):
+                            status_dict["started_at"] = status_dict["started_at"].isoformat()
+                        if status_dict.get("updated_at"):
+                            status_dict["updated_at"] = status_dict["updated_at"].isoformat()
+                            
+                        logger.info(f"📤 Returning fallback status from database: {json_dumps(status_dict, indent=2)}")
                         print(f"Returning fallback status from database: {pprint.pformat(status_dict)}")
                         print(f"\n=== TASK STATUS CHECK COMPLETED ===\n")
                         return status_dict
@@ -713,6 +582,12 @@ async def get_query_status(task_id: str) -> Dict[str, Any]:
                 print(f"ERROR: Fallback to database failed: {fallback_error}")
                 raise ValueError(f"Task {task_id} not found")
         
+        # Convert any datetime objects in status_data to strings
+        if "started_at" in status_data and status_data["started_at"] and not isinstance(status_data["started_at"], str):
+            status_data["started_at"] = status_data["started_at"].isoformat()
+        if "updated_at" in status_data and status_data["updated_at"] and not isinstance(status_data["updated_at"], str):
+            status_data["updated_at"] = status_data["updated_at"].isoformat()
+            
         # Format as QueryStatus
         status = QueryStatus(
             task_id=task_id,
@@ -723,7 +598,13 @@ async def get_query_status(task_id: str) -> Dict[str, Any]:
         )
         
         status_dict = status.dict()
-        logger.info(f"📤 Returning status from task queue: {json.dumps(status_dict, indent=2)}")
+        # Convert datetime objects to strings for JSON serialization
+        if status_dict.get("started_at") and not isinstance(status_dict["started_at"], str):
+            status_dict["started_at"] = status_dict["started_at"].isoformat()
+        if status_dict.get("updated_at") and not isinstance(status_dict["updated_at"], str):
+            status_dict["updated_at"] = status_dict["updated_at"].isoformat()
+            
+        logger.info(f"📤 Returning status from task queue: {json_dumps(status_dict, indent=2)}")
         print(f"Returning status from task queue: {pprint.pformat(status_dict)}")
         print(f"\n=== TASK STATUS CHECK COMPLETED ===\n")
         return status_dict
@@ -770,7 +651,7 @@ async def get_query_result(task_id: str) -> Dict[str, Any]:
                         "created_at": db_record.created_at.isoformat() if db_record.created_at else None,
                         "updated_at": db_record.updated_at.isoformat() if db_record.updated_at else None
                     }
-                    logger.debug(f"📋 Completed record details: {json.dumps(record_dict, indent=2)}")
+                    logger.debug(f"📋 Completed record details: {json_dumps(record_dict, indent=2)}")
                     print(f"Completed record details: {pprint.pformat(record_dict)}")
                     
                     # Calculate execution time if not present
@@ -781,13 +662,18 @@ async def get_query_result(task_id: str) -> Dict[str, Any]:
                         print(f"Execution time from result: {execution_time}")
                     
                     # Format as QueryResponse
-                    response_dict = QueryResponse(
+                    response = QueryResponse(
                         task_id=task_id,
                         result=db_record.result,
                         status="completed",
                         execution_time=execution_time,
                         created_at=db_record.created_at
-                    ).dict()
+                    )
+                    
+                    # Convert to dict and handle datetime objects
+                    response_dict = response.dict()
+                    if response_dict.get("created_at") and not isinstance(response_dict["created_at"], str):
+                        response_dict["created_at"] = response_dict["created_at"].isoformat()
                     
                     logger.info(f"📤 Returning completed result from database")
                     print(f"Returning completed result from database")
@@ -805,7 +691,7 @@ async def get_query_result(task_id: str) -> Dict[str, Any]:
                         "status": db_record.status,
                         "error": db_record.result.get("error") if db_record.result and isinstance(db_record.result, dict) else "Unknown error"
                     }
-                    logger.debug(f"📋 Failed task record: {json.dumps(error_record, indent=2)}")
+                    logger.debug(f"📋 Failed task record: {json_dumps(error_record, indent=2)}")
                     print(f"Failed task record: {pprint.pformat(error_record)}")
                     
                     error_result = {
@@ -834,7 +720,7 @@ async def get_query_result(task_id: str) -> Dict[str, Any]:
                         "created_at": db_record.created_at.isoformat() if db_record.created_at else None,
                         "updated_at": db_record.updated_at.isoformat() if db_record.updated_at else None
                     }
-                    logger.debug(f"📋 In-progress task record: {json.dumps(progress_record, indent=2)}")
+                    logger.debug(f"📋 In-progress task record: {json_dumps(progress_record, indent=2)}")
                     print(f"In-progress task record: {pprint.pformat(progress_record)}")
                     
                     progress_dict = {
@@ -858,7 +744,9 @@ async def get_query_result(task_id: str) -> Dict[str, Any]:
         print(f"Checking task queue for result of task: {task_id}")
         result_data = await task_queue.get_task_result(task_id)
         
-        logger.debug(f"📊 Retrieved result data from queue: {json.dumps(str(result_data)[:200], indent=2) + '...' if result_data and len(str(result_data)) > 200 else result_data}")
+        # Use json_dumps for logging
+        result_preview = json_dumps(str(result_data)[:200] + "..." if result_data and len(str(result_data)) > 200 else result_data, indent=2)
+        logger.debug(f"📊 Retrieved result data from queue: {result_preview}")
         print(f"Retrieved result data from queue: {str(result_data)[:200] + '...' if result_data and len(str(result_data)) > 200 else result_data}")
         
         if not result_data:
@@ -876,13 +764,18 @@ async def get_query_result(task_id: str) -> Dict[str, Any]:
                         
                         if db_record.status == "completed" and db_record.result:
                             # Format as QueryResponse for completed tasks
-                            fallback_response = QueryResponse(
+                            response = QueryResponse(
                                 task_id=task_id,
                                 result=db_record.result,
                                 status="completed",
                                 execution_time=None,
                                 created_at=db_record.created_at
-                            ).dict()
+                            )
+                            
+                            # Convert to dict and handle datetime objects
+                            fallback_response = response.dict()
+                            if fallback_response.get("created_at") and not isinstance(fallback_response["created_at"], str):
+                                fallback_response["created_at"] = fallback_response["created_at"].isoformat()
                             
                             logger.info(f"📤 Returning completed result from database fallback")
                             print(f"Returning completed result from database fallback")
@@ -933,7 +826,11 @@ async def get_query_result(task_id: str) -> Dict[str, Any]:
             created_at=result_data.get("created_at")
         )
         
+        # Convert to dict and handle datetime objects
         response_dict = response.dict()
+        if response_dict.get("created_at") and not isinstance(response_dict["created_at"], str):
+            response_dict["created_at"] = response_dict["created_at"].isoformat()
+        
         logger.info(f"📤 Returning completed result from task queue")
         print(f"Returning completed result from task queue")
         print(f"\n=== TASK RESULT RETRIEVAL COMPLETED ===\n")
