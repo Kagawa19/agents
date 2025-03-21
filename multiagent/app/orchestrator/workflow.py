@@ -1,6 +1,6 @@
 """
 Workflow definition and execution.
-Defines and executes sequences of agent operations to fulfill user requests.
+Defines and executes single-agent operations to fulfill user requests.
 """
 
 import logging
@@ -16,19 +16,7 @@ from multiagent.app.monitoring.tracer import LangfuseTracer
 from multiagent.app.orchestrator.manager import AgentManager
 import asyncio
 import logging
-import asyncio
-import logging
-import time
-from datetime import datetime
-from typing import Dict, Any
-import time
-from datetime import datetime
-from typing import Dict, Any
-
 import traceback
-
-from multiagent.app.db.results import crud_result
-from multiagent.app.db.session import SessionLocal
 
 
 logger = logging.getLogger(__name__)
@@ -36,7 +24,7 @@ logger = logging.getLogger(__name__)
 class Workflow:
     """
     Base class for all workflows in the system.
-    A workflow is a sequence of agent operations that fulfill a specific task.
+    A workflow now executes a single agent operation that fulfills a specific task.
     """
     
     def __init__(self, name: str, agent_manager: AgentManager, tracer: LangfuseTracer):
@@ -381,13 +369,8 @@ class Workflow:
                         # For any other type, create a basic result dictionary
                         final_result = {"result": str(final_result)}
                 
-                # Depending on the agent, extract different information
-                if last_agent_id == "summarizer":
-                    result_data["summary"] = final_result.get("summary", "")
-                    result_data["confidence_score"] = final_result.get("confidence_score", 0)
-                else:
-                    # Default to the full result
-                    result_data["result"] = final_result
+                # Add the agent's output directly as the result
+                result_data["result"] = final_result
             else:
                 logger.warning(f"Last agent {last_agent_id} output not found in state")
                 result_data["result"] = {"error": f"Last agent {last_agent_id} output not found"}
@@ -464,27 +447,23 @@ class Workflow:
         }
 
 
-
-class ResearchWorkflow(Workflow):
+class ResearcherWorkflow(Workflow):
     """
-    Standard research workflow that uses all three agents.
-    Researches a topic, analyzes the findings, and summarizes the results.
+    Single-agent workflow that only uses the Researcher agent.
     """
     
     def __init__(self, agent_manager: AgentManager, tracer: LangfuseTracer):
         """
-        Initialize the research workflow.
+        Initialize the researcher workflow.
         
         Args:
             agent_manager: AgentManager instance
             tracer: LangfuseTracer instance for monitoring
         """
-        super().__init__("research", agent_manager, tracer)
-        self.description = "Comprehensive research workflow that searches for information, analyzes it, and creates a summary"
+        super().__init__("researcher", agent_manager, tracer)
+        self.description = "Research workflow that searches for information across the web"
         
-        # Define the workflow steps
-        
-        # Step 1: Research
+        # Define the workflow with a single step - just the researcher
         self.add_step(
             agent_id="researcher",
             input_mapper=lambda state: {
@@ -492,145 +471,63 @@ class ResearchWorkflow(Workflow):
             },
             description="Search for information across the web"
         )
+
+
+class AnalyzerWorkflow(Workflow):
+    """
+    Single-agent workflow that only uses the Analyzer agent.
+    """
+    
+    def __init__(self, agent_manager: AgentManager, tracer: LangfuseTracer):
+        """
+        Initialize the analyzer workflow.
         
-        # Step 2: Analyze
+        Args:
+            agent_manager: AgentManager instance
+            tracer: LangfuseTracer instance for monitoring
+        """
+        super().__init__("analyzer", agent_manager, tracer)
+        self.description = "Analysis workflow that extracts key insights from research"
+        
+        # Define the workflow with a single step - just the analyzer
         self.add_step(
             agent_id="analyzer",
             input_mapper=lambda state: {
                 "query": state["input"]["query"],
-                "information": state["researcher"]["processed_information"],
-                "search_web": state["input"].get("enable_analyzer_search", False),
-                "num_results": state["input"].get("analyzer_search_results", 3)
+                "information": state["input"].get("information", []),
+                "search_web": state["input"].get("enable_search", False),
+                "num_results": state["input"].get("search_results", 3)
             },
-            description="Analyze and extract key insights from research"
+            description="Analyze and extract key insights from information"
         )
-        
-        # Step 3: Summarize - FIXED version with safe access pattern
-        self.add_step(
-            agent_id="summarizer",
-            input_mapper=lambda state: {
-                "query": state["input"]["query"],
-                "analysis_results": self._safely_get_analysis_results(state)
-            },
-            description="Create a concise summary of the findings"
-        )
-    
-    def _safely_get_analysis_results(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Safely extract analysis results from the state, handling cases where 
-        the analyzer output might be a string instead of a dictionary.
-        
-        Args:
-            state: Current workflow state
-            
-        Returns:
-            Analysis results dictionary
-        """
-        analyzer_data = state.get("analyzer")
-        
-        # If analyzer data is missing
-        if analyzer_data is None:
-            logger.error("Analyzer data is missing from workflow state")
-            return {"error": "Missing analyzer data"}
-            
-        # If analyzer data is a dictionary (normal case)
-        if isinstance(analyzer_data, dict):
-            return analyzer_data.get("analysis_results", {"error": "No analysis results in output"})
-            
-        # If analyzer data is a string (serialized JSON)
-        if isinstance(analyzer_data, str):
-            try:
-                parsed_data = json.loads(analyzer_data)
-                if isinstance(parsed_data, dict):
-                    return parsed_data.get("analysis_results", {"error": "No analysis results in parsed output"})
-                else:
-                    logger.error(f"Parsed analyzer data is not a dictionary: {type(parsed_data)}")
-                    return {"error": "Invalid analyzer data format after parsing"}
-            except json.JSONDecodeError as e:
-                logger.error(f"Failed to parse analyzer data as JSON: {e}")
-                return {"error": "Failed to parse analyzer output"}
-        
-        # If analyzer data is some other type
-        logger.error(f"Unexpected analyzer data type: {type(analyzer_data)}")
-        return {"error": f"Unexpected analyzer data type: {type(analyzer_data)}"}
 
 
-class DirectResearchWorkflow(Workflow):
+class SummarizerWorkflow(Workflow):
     """
-    Simpler research workflow that skips analysis and goes straight to summarization.
-    Useful for simpler queries or when faster response is needed.
+    Single-agent workflow that only uses the Summarizer agent.
     """
     
     def __init__(self, agent_manager: AgentManager, tracer: LangfuseTracer):
         """
-        Initialize the direct research workflow.
+        Initialize the summarizer workflow.
         
         Args:
             agent_manager: AgentManager instance
             tracer: LangfuseTracer instance for monitoring
         """
-        super().__init__("direct_research", agent_manager, tracer)
-        self.description = "Streamlined research workflow that searches for information and creates a summary directly"
+        super().__init__("summarizer", agent_manager, tracer)
+        self.description = "Summarization workflow that creates a concise summary of findings"
         
-        # Define the workflow steps
-        
-        # Step 1: Research
-        self.add_step(
-            agent_id="researcher",
-            input_mapper=lambda state: {
-                "query": state["input"]["query"]
-            },
-            description="Search for information across the web"
-        )
-        
-        # Step 2: Summarize (directly from research) - FIXED version with safe access
+        # Define the workflow with a single step - just the summarizer
         self.add_step(
             agent_id="summarizer",
             input_mapper=lambda state: {
                 "query": state["input"]["query"],
-                "analysis_results": self._safely_get_research_results(state)
+                "analysis_results": state["input"].get("analysis_results", {})
             },
             description="Create a concise summary of the findings"
         )
-    
-    def _safely_get_research_results(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Safely extract research results from the state, handling cases where 
-        the researcher output might be a string instead of a dictionary.
-        
-        Args:
-            state: Current workflow state
-            
-        Returns:
-            Research results dictionary
-        """
-        researcher_data = state.get("researcher")
-        
-        # If researcher data is missing
-        if researcher_data is None:
-            logger.error("Researcher data is missing from workflow state")
-            return {"error": "Missing researcher data"}
-            
-        # If researcher data is a dictionary (normal case)
-        if isinstance(researcher_data, dict):
-            return researcher_data.get("processed_information", {"error": "No processed information in output"})
-            
-        # If researcher data is a string (serialized JSON)
-        if isinstance(researcher_data, str):
-            try:
-                parsed_data = json.loads(researcher_data)
-                if isinstance(parsed_data, dict):
-                    return parsed_data.get("processed_information", {"error": "No processed information in parsed output"})
-                else:
-                    logger.error(f"Parsed researcher data is not a dictionary: {type(parsed_data)}")
-                    return {"error": "Invalid researcher data format after parsing"}
-            except json.JSONDecodeError as e:
-                logger.error(f"Failed to parse researcher data as JSON: {e}")
-                return {"error": "Failed to parse researcher output"}
-        
-        # If researcher data is some other type
-        logger.error(f"Unexpected researcher data type: {type(researcher_data)}")
-        return {"error": f"Unexpected researcher data type: {type(researcher_data)}"}
+
 
 class WorkflowManager:
     """
@@ -658,17 +555,26 @@ class WorkflowManager:
         Register all available workflows.
         Creates and registers workflow instances.
         """
-        # Standard research workflow
-        self.workflows["research"] = ResearchWorkflow(
+        # Individual agent workflows
+        self.workflows["researcher"] = ResearcherWorkflow(
             agent_manager=self.agent_manager,
             tracer=self.tracer
         )
         
-        # Direct research workflow
-        self.workflows["direct_research"] = DirectResearchWorkflow(
+        self.workflows["analyzer"] = AnalyzerWorkflow(
             agent_manager=self.agent_manager,
             tracer=self.tracer
         )
+        
+        self.workflows["summarizer"] = SummarizerWorkflow(
+            agent_manager=self.agent_manager,
+            tracer=self.tracer
+        )
+        
+        # Keep original workflow names for backward compatibility
+        # These will now just use their respective single agent workflows
+        self.workflows["research"] = self.workflows["researcher"]
+        self.workflows["direct_research"] = self.workflows["researcher"]
         
         # Additional workflows can be registered here
         logger.info(f"Registered workflows: {', '.join(self.workflows.keys())}")
